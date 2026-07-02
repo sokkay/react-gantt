@@ -137,4 +137,30 @@ describe("GanttChart", () => {
     expect(screen.queryByTestId("task-t1")).not.toBeInTheDocument();
     expect(screen.getByText("Platform")).toBeInTheDocument();
   });
+
+  it("can keep the selection toolbar static without a selected task", () => {
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        selectedTaskId={null}
+        selectionToolbarMode="static"
+      />
+    );
+
+    expect(screen.getByText("No task selected")).toBeInTheDocument();
+  });
+
+  it("can hide the selection toolbar", () => {
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        selectedTaskId="t1"
+        selectionToolbarMode="hidden"
+      />
+    );
+
+    expect(screen.queryByText("Clear")).not.toBeInTheDocument();
+  });
 });

@@ -55,6 +55,15 @@
   padding: 8px 12px;
 }
 
+.sokkay-gantt__selection-toolbar.is-empty {
+  color: var(--sg-muted-text);
+}
+
+.sokkay-gantt__selection-placeholder {
+  font-size: 13px;
+  font-weight: 650;
+}
+
 .sokkay-gantt__selection-toolbar button,
 .sokkay-gantt__context-menu button {
   border: 1px solid var(--sg-border);

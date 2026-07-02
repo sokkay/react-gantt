@@ -176,6 +176,7 @@ Main callbacks:
 Behavior props:
 
 - `collapsedProjectIds` / `defaultCollapsedProjectIds`
+- `selectionToolbarMode`: `auto`, `static` or `hidden`
 - `snapTo`: `day`, `week`, `month`, `quarter`, `year` or `none`
 - `virtualized`
 - `overscan`
@@ -186,6 +187,7 @@ Customization:
 - `renderTaskTooltip`
 - `renderContextMenu`
 - `renderSelectionToolbar`
+- `renderEmptySelectionToolbar`
 - `renderProjectCell`
 - `renderSidebarHeader`
 - `renderHeaderCell`

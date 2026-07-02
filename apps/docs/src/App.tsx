@@ -291,6 +291,7 @@ export default function App() {
             projects={projects}
             viewMode={viewMode}
             selectedTaskId={selectedTaskId}
+            selectionToolbarMode="static"
             collapsedProjectIds={collapsedProjectIds}
             virtualized
             onTaskMove={handleMove}
@@ -360,6 +361,12 @@ export default function App() {
                 <button type="button" onClick={() => setSelectedTaskId(null)}>
                   Clear
                 </button>
+              </>
+            )}
+            renderEmptySelectionToolbar={() => (
+              <>
+                <strong>No task selected</strong>
+                <span>Pick a task to inspect it here.</span>
               </>
             )}
           />

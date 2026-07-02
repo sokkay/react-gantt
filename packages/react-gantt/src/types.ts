@@ -4,6 +4,8 @@ export type GanttDateInput = Date | string | number;
 
 export type GanttViewMode = "day" | "week" | "month" | "quarter" | "year";
 
+export type GanttSelectionToolbarMode = "auto" | "static" | "hidden";
+
 export interface GanttTask<TMeta = unknown> {
   id: string;
   projectId: string;
@@ -115,6 +117,7 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   projects: Array<GanttProject<TProjectMeta, TTaskMeta>>;
   viewMode: GanttViewMode;
   selectedTaskId?: string | null;
+  selectionToolbarMode?: GanttSelectionToolbarMode;
   collapsedProjectIds?: string[];
   defaultCollapsedProjectIds?: string[];
   snapTo?: GanttViewMode | "none";
@@ -150,6 +153,7 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
     task: NormalizedGanttTask<TTaskMeta>,
     actions: ContextMenuActions
   ) => ReactNode;
+  renderEmptySelectionToolbar?: (actions: ContextMenuActions) => ReactNode;
   renderProjectCell?: (
     project: NormalizedGanttProject<TProjectMeta, TTaskMeta>,
     state: { collapsed: boolean; taskCount: number }

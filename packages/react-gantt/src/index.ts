@@ -6,6 +6,7 @@ export type {
   GanttClassNames,
   GanttDateInput,
   GanttProject,
+  GanttSelectionToolbarMode,
   GanttTask,
   GanttTheme,
   GanttViewMode,

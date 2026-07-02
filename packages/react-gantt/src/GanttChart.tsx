@@ -190,6 +190,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     projects,
     viewMode,
     selectedTaskId = null,
+    selectionToolbarMode = "auto",
     collapsedProjectIds,
     defaultCollapsedProjectIds,
     snapTo = viewMode,
@@ -210,6 +211,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     renderTaskTooltip,
     renderContextMenu,
     renderSelectionToolbar,
+    renderEmptySelectionToolbar,
     renderProjectCell,
     renderSidebarHeader,
     renderHeaderCell,
@@ -259,6 +261,9 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
         .find((task) => task.id === selectedTaskId) ?? null,
     [normalizedProjects, selectedTaskId]
   );
+  const showSelectionToolbar =
+    selectionToolbarMode === "static" ||
+    (selectionToolbarMode === "auto" && selectedTask);
   const [interaction, setInteraction] =
     useState<PointerInteraction<TTaskMeta> | null>(null);
   const [contextMenu, setContextMenu] =
@@ -605,20 +610,36 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
         onScroll={handleScroll}
         onClick={() => onTaskSelect?.(null)}
       >
-        {selectedTask && (
-          <div className="sokkay-gantt__selection-toolbar">
-            {renderSelectionToolbar ? (
-              renderSelectionToolbar(selectedTask, {
+        {showSelectionToolbar && (
+          <div
+            className={cx(
+              "sokkay-gantt__selection-toolbar",
+              !selectedTask && "is-empty"
+            )}
+          >
+            {selectedTask ? (
+              renderSelectionToolbar ? (
+                renderSelectionToolbar(selectedTask, {
+                  close: closeContextMenu,
+                  select: () => onTaskSelect?.(selectedTask),
+                })
+              ) : (
+                <>
+                  <strong>{selectedTask.name}</strong>
+                  <button type="button" onClick={() => onTaskSelect?.(null)}>
+                    Clear
+                  </button>
+                </>
+              )
+            ) : renderEmptySelectionToolbar ? (
+              renderEmptySelectionToolbar({
                 close: closeContextMenu,
-                select: () => onTaskSelect?.(selectedTask),
+                select: () => undefined,
               })
             ) : (
-              <>
-                <strong>{selectedTask.name}</strong>
-                <button type="button" onClick={() => onTaskSelect?.(null)}>
-                  Clear
-                </button>
-              </>
+              <span className="sokkay-gantt__selection-placeholder">
+                No task selected
+              </span>
             )}
           </div>
         )}

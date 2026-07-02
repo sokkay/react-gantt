@@ -1,0 +1,258 @@
+@tailwind components;
+@tailwind utilities;
+
+.sokkay-gantt {
+  --sg-background: #f8fafc;
+  --sg-surface: #ffffff;
+  --sg-border: #d8dee8;
+  --sg-text: #111827;
+  --sg-muted-text: #64748b;
+  --sg-grid: #e7ecf3;
+  --sg-task: #2563eb;
+  --sg-task-text: #ffffff;
+  --sg-selected: #f59e0b;
+  --sg-row-height: 56px;
+  --sg-sidebar-width: 240px;
+  --sg-header-height: 44px;
+  position: relative;
+  overflow: auto;
+  width: 100%;
+  border: 1px solid var(--sg-border);
+  border-radius: 8px;
+  background: var(--sg-background);
+  color: var(--sg-text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.sokkay-gantt *,
+.sokkay-gantt *::before,
+.sokkay-gantt *::after {
+  box-sizing: border-box;
+}
+
+.sokkay-gantt__selection-toolbar {
+  position: sticky;
+  left: 0;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--sg-border);
+  background: var(--sg-surface);
+  padding: 8px 12px;
+}
+
+.sokkay-gantt__selection-toolbar button,
+.sokkay-gantt__context-menu button {
+  border: 1px solid var(--sg-border);
+  border-radius: 6px;
+  background: var(--sg-surface);
+  color: var(--sg-text);
+  cursor: pointer;
+  font: inherit;
+  padding: 6px 10px;
+}
+
+.sokkay-gantt__header,
+.sokkay-gantt__body {
+  display: flex;
+  min-width: max-content;
+}
+
+.sokkay-gantt__header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: var(--sg-header-height);
+  border-bottom: 1px solid var(--sg-border);
+  background: var(--sg-surface);
+}
+
+.sokkay-gantt__sidebar-header,
+.sokkay-gantt__project-cell {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  width: var(--sg-sidebar-width);
+  min-width: var(--sg-sidebar-width);
+  border-right: 1px solid var(--sg-border);
+  background: var(--sg-surface);
+}
+
+.sokkay-gantt__sidebar-header {
+  display: flex;
+  height: var(--sg-header-height);
+  align-items: center;
+  color: var(--sg-muted-text);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 14px;
+  text-transform: uppercase;
+}
+
+.sokkay-gantt__timeline-header {
+  display: flex;
+  min-height: var(--sg-header-height);
+}
+
+.sokkay-gantt__header-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--sg-grid);
+  color: var(--sg-muted-text);
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.sokkay-gantt__sidebar,
+.sokkay-gantt__timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.sokkay-gantt__project-cell,
+.sokkay-gantt__row {
+  min-height: var(--sg-row-height);
+}
+
+.sokkay-gantt__project-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--sg-border);
+  padding: 0 12px;
+}
+
+.sokkay-gantt__project-cell.is-dragging {
+  opacity: 0.75;
+}
+
+.sokkay-gantt__project-grip,
+.sokkay-gantt__task-transfer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--sg-muted-text);
+  cursor: grab;
+  padding: 0;
+}
+
+.sokkay-gantt__project-label {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sokkay-gantt__row {
+  position: relative;
+  display: flex;
+  border-bottom: 1px solid var(--sg-border);
+  background: var(--sg-surface);
+}
+
+.sokkay-gantt__row.is-over {
+  background: #eef6ff;
+}
+
+.sokkay-gantt__grid-cell {
+  min-height: var(--sg-row-height);
+  border-right: 1px solid var(--sg-grid);
+}
+
+.sokkay-gantt__task {
+  position: absolute;
+  top: 11px;
+  z-index: 2;
+  display: flex;
+  height: 34px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--sg-task-color, var(--sg-task)) 76%, #000000);
+  border-radius: 7px;
+  background: var(--sg-task-color, var(--sg-task));
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  color: var(--sg-task-text);
+  cursor: grab;
+  user-select: none;
+}
+
+.sokkay-gantt__task.is-selected {
+  outline: 3px solid color-mix(in srgb, var(--sg-selected) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.sokkay-gantt__task-progress {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+}
+
+.sokkay-gantt__task-content {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  min-width: 0;
+  flex: 1;
+  padding: 0 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.sokkay-gantt__task-transfer {
+  position: relative;
+  z-index: 2;
+  width: 24px;
+  min-width: 24px;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.sokkay-gantt__resize {
+  position: relative;
+  z-index: 3;
+  width: 8px;
+  min-width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+}
+
+.sokkay-gantt__tooltip {
+  z-index: 50;
+  max-width: 260px;
+  border: 1px solid var(--sg-border);
+  border-radius: 8px;
+  background: #0f172a;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.24);
+  color: #ffffff;
+  font-size: 12px;
+  padding: 8px 10px;
+}
+
+.sokkay-gantt__tooltip strong,
+.sokkay-gantt__tooltip span {
+  display: block;
+}
+
+.sokkay-gantt__context-menu {
+  position: fixed;
+  z-index: 60;
+  display: grid;
+  min-width: 150px;
+  gap: 6px;
+  border: 1px solid var(--sg-border);
+  border-radius: 8px;
+  background: var(--sg-surface);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+  padding: 8px;
+}

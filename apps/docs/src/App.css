@@ -1,0 +1,151 @@
+.docs-shell {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.docs-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.docs-header h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.docs-header p {
+  max-width: 700px;
+  margin: 8px 0 0;
+  color: #526070;
+  font-size: 15px;
+}
+
+.view-switcher {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid #cfd8e3;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.view-switcher button {
+  border: 0;
+  border-right: 1px solid #cfd8e3;
+  background: transparent;
+  color: #334155;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  padding: 9px 12px;
+  text-transform: capitalize;
+}
+
+.view-switcher button:last-child {
+  border-right: 0;
+}
+
+.view-switcher button.is-active {
+  background: #111827;
+  color: #ffffff;
+}
+
+.demo-grid {
+  display: grid;
+  align-items: start;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+.gantt-panel {
+  min-width: 0;
+}
+
+.inspector {
+  display: grid;
+  gap: 14px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.inspector h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 15px;
+}
+
+.inspector dl {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 90px 1fr;
+  margin: 0;
+}
+
+.inspector dt {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.inspector dd {
+  margin: 0;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.inspector ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.inspector li {
+  color: #334155;
+  font-size: 13px;
+}
+
+.sokkay-gantt__project-label span,
+.sokkay-gantt__task-content span {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sokkay-gantt__project-label small,
+.sokkay-gantt__task-content small {
+  color: inherit;
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.custom-tooltip {
+  display: grid;
+  gap: 3px;
+}
+
+@media (max-width: 920px) {
+  .docs-shell {
+    padding: 16px;
+  }
+
+  .docs-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .demo-grid {
+    grid-template-columns: 1fr;
+  }
+}

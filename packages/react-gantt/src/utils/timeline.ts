@@ -5,7 +5,7 @@ import { addViewUnits, diffViewUnits, snapDate } from "./dates";
 const CELL_WIDTH: Record<GanttViewMode, number> = {
   day: 48,
   week: 72,
-  month: 96,
+  month: 144,
   quarter: 120,
   year: 148,
 };
@@ -95,19 +95,35 @@ export function dateRangeToPixels(
   timeline: TimelineModel,
   viewMode: GanttViewMode
 ) {
-  const left = dateToPixels(start, timeline, viewMode);
-  const snappedStart = snapDate(start, viewMode);
-  const snappedEnd = snapDate(end, viewMode);
-  const displayEnd =
-    end.getTime() === snappedEnd.getTime()
-      ? snappedEnd
-      : addViewUnits(snappedEnd, 1, viewMode);
-  const units = Math.max(diffViewUnits(snappedStart, displayEnd, viewMode), 1);
+  const left = dateToPrecisePixels(start, timeline, viewMode);
+  const right = dateToPrecisePixels(end, timeline, viewMode);
 
   return {
     left,
-    width: units * timeline.cellWidth,
+    width: Math.max(right - left, timeline.cellWidth / 12),
   };
+}
+
+function dateToPrecisePixels(
+  date: Date,
+  timeline: TimelineModel,
+  viewMode: GanttViewMode
+) {
+  const cellIndex = timeline.cells.findIndex(
+    (cell) => date >= cell.start && date < cell.end
+  );
+
+  if (cellIndex >= 0) {
+    const cell = timeline.cells[cellIndex];
+    const elapsed = date.getTime() - cell.start.getTime();
+    const duration = cell.end.getTime() - cell.start.getTime();
+
+    return (
+      cellIndex * timeline.cellWidth + (elapsed / duration) * timeline.cellWidth
+    );
+  }
+
+  return dateToPixels(date, timeline, viewMode);
 }
 
 export function pixelsToUnits(deltaPixels: number, timeline: TimelineModel) {

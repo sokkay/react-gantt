@@ -38,7 +38,13 @@ describe("timeline utilities", () => {
     expect(pixelsToUnits(timeline.cellWidth * 2.6, timeline)).toBe(3);
   });
 
-  it("spans every touched month for month view ranges", () => {
+  it("uses wider cells for month view", () => {
+    const timeline = buildTimeline(projects, "month");
+
+    expect(timeline.cellWidth).toBe(144);
+  });
+
+  it("spills into the next month without filling the whole month", () => {
     const timeline = buildTimeline(
       [
         {
@@ -54,18 +60,19 @@ describe("timeline utilities", () => {
       ],
       "month"
     );
+    const range = dateRangeToPixels(
+      new Date("2026-07-15"),
+      new Date("2026-08-02"),
+      timeline,
+      "month"
+    );
+    const augustStart = dateToPixels(new Date("2026-08-01"), timeline, "month");
 
-    expect(
-      dateRangeToPixels(
-        new Date("2026-07-15"),
-        new Date("2026-08-02"),
-        timeline,
-        "month"
-      ).width
-    ).toBe(timeline.cellWidth * 2);
+    expect(range.left + range.width).toBeGreaterThan(augustStart);
+    expect(range.width).toBeLessThan(timeline.cellWidth);
   });
 
-  it("does not include the next month when the range ends on its boundary", () => {
+  it("does not fill the full month for a partial monthly range", () => {
     const timeline = buildTimeline(
       [
         {
@@ -89,6 +96,6 @@ describe("timeline utilities", () => {
         timeline,
         "month"
       ).width
-    ).toBe(timeline.cellWidth);
+    ).toBeLessThan(timeline.cellWidth);
   });
 });

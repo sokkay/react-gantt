@@ -47,6 +47,7 @@ import {
 import { buildProjectLayouts } from "./utils/layout";
 import {
   buildTimeline,
+  dateRangeToPixels,
   dateToPixels,
   pixelsToUnits,
   type TimelineModel,
@@ -230,15 +231,19 @@ function CollapsedProjectSummaryBar<TProjectMeta, TTaskMeta>({
     TTaskMeta
   >["renderCollapsedProjectSummary"];
 }) {
-  const left = dateToPixels(summary.start, timeline, viewMode);
-  const right = dateToPixels(summary.end, timeline, viewMode);
-  const width = Math.max(right - left, 36);
+  const range = dateRangeToPixels(
+    summary.start,
+    summary.end,
+    timeline,
+    viewMode
+  );
+  const width = Math.max(range.width, 36);
 
   return (
     <div
       className={cx("sokkay-gantt__collapsed-summary", className)}
       data-testid={`project-summary-${summary.project.id}`}
-      style={{ left, width }}
+      style={{ left: range.left, width }}
     >
       {renderCollapsedProjectSummary ? (
         renderCollapsedProjectSummary(summary)

@@ -89,6 +89,27 @@ export function dateToPixels(
   );
 }
 
+export function dateRangeToPixels(
+  start: Date,
+  end: Date,
+  timeline: TimelineModel,
+  viewMode: GanttViewMode
+) {
+  const left = dateToPixels(start, timeline, viewMode);
+  const snappedStart = snapDate(start, viewMode);
+  const snappedEnd = snapDate(end, viewMode);
+  const displayEnd =
+    end.getTime() === snappedEnd.getTime()
+      ? snappedEnd
+      : addViewUnits(snappedEnd, 1, viewMode);
+  const units = Math.max(diffViewUnits(snappedStart, displayEnd, viewMode), 1);
+
+  return {
+    left,
+    width: units * timeline.cellWidth,
+  };
+}
+
 export function pixelsToUnits(deltaPixels: number, timeline: TimelineModel) {
   return Math.round(deltaPixels / timeline.cellWidth);
 }

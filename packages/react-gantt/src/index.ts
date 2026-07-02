@@ -32,4 +32,9 @@ export {
   shiftRangeByUnits,
   snapDate,
 } from "./utils/dates";
-export { buildTimeline, dateToPixels, pixelsToUnits } from "./utils/timeline";
+export {
+  buildTimeline,
+  dateRangeToPixels,
+  dateToPixels,
+  pixelsToUnits,
+} from "./utils/timeline";

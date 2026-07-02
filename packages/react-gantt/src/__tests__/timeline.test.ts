@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { NormalizedGanttProject } from "../types";
-import { buildTimeline, dateToPixels, pixelsToUnits } from "../utils/timeline";
+import {
+  buildTimeline,
+  dateRangeToPixels,
+  dateToPixels,
+  pixelsToUnits,
+} from "../utils/timeline";
 
 const projects: NormalizedGanttProject[] = [
   {
@@ -31,5 +36,59 @@ describe("timeline utilities", () => {
 
     expect(pixelsToUnits(timeline.cellWidth * 2.2, timeline)).toBe(2);
     expect(pixelsToUnits(timeline.cellWidth * 2.6, timeline)).toBe(3);
+  });
+
+  it("spans every touched month for month view ranges", () => {
+    const timeline = buildTimeline(
+      [
+        {
+          ...projects[0],
+          tasks: [
+            {
+              ...projects[0].tasks[0],
+              start: new Date("2026-07-15"),
+              end: new Date("2026-08-02"),
+            },
+          ],
+        },
+      ],
+      "month"
+    );
+
+    expect(
+      dateRangeToPixels(
+        new Date("2026-07-15"),
+        new Date("2026-08-02"),
+        timeline,
+        "month"
+      ).width
+    ).toBe(timeline.cellWidth * 2);
+  });
+
+  it("does not include the next month when the range ends on its boundary", () => {
+    const timeline = buildTimeline(
+      [
+        {
+          ...projects[0],
+          tasks: [
+            {
+              ...projects[0].tasks[0],
+              start: new Date("2026-07-15"),
+              end: new Date("2026-08-01"),
+            },
+          ],
+        },
+      ],
+      "month"
+    );
+
+    expect(
+      dateRangeToPixels(
+        new Date("2026-07-15"),
+        new Date("2026-08-01"),
+        timeline,
+        "month"
+      ).width
+    ).toBe(timeline.cellWidth);
   });
 });

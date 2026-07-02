@@ -18,8 +18,7 @@ import type {
   NormalizedGanttTask,
 } from "../types";
 import { cx } from "../utils/cx";
-import { diffViewUnits } from "../utils/dates";
-import { dateToPixels, type TimelineModel } from "../utils/timeline";
+import { dateRangeToPixels, type TimelineModel } from "../utils/timeline";
 
 function TransferHandle<TTaskMeta>({
   task,
@@ -110,9 +109,8 @@ export function TaskBar<TTaskMeta>({
     placement: "top",
     middleware: [offset(8), flip(), shift({ padding: 8 })],
   });
-  const left = dateToPixels(task.start, timeline, viewMode);
-  const units = Math.max(diffViewUnits(task.start, task.end, viewMode), 1);
-  const width = Math.max(units * timeline.cellWidth, 36);
+  const range = dateRangeToPixels(task.start, task.end, timeline, viewMode);
+  const width = Math.max(range.width, 36);
   const progress = Math.max(0, Math.min(task.progress ?? 0, 100));
   const setReference = useCallback(
     (node: HTMLDivElement | null) => {
@@ -135,7 +133,7 @@ export function TaskBar<TTaskMeta>({
         data-testid={`task-${task.id}`}
         style={
           {
-            left,
+            left: range.left,
             top,
             width,
             "--sg-task-color": task.color,

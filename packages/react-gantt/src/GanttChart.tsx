@@ -193,7 +193,6 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
       layouts,
       normalizedProjects,
       onTaskSelect,
-      ref,
       rowOffsets,
       setProjectCollapsed,
       timeline,

@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import type { GanttChartProps } from "../types";
 import { toPixelNumber } from "../utils/theme";
 
@@ -56,14 +56,6 @@ export function useSidebarResize<TProjectMeta, TTaskMeta>({
     },
     [effectiveSidebarWidth, onSidebarWidthChange, sidebarMinWidth, sidebarWidth]
   );
-
-  useEffect(() => {
-    if (sidebarWidth !== undefined) {
-      setInternalSidebarWidth(
-        toPixelNumber(sidebarWidth, sidebarWidthFallback)
-      );
-    }
-  }, [sidebarWidth, sidebarWidthFallback]);
 
   return {
     effectiveSidebarWidth,

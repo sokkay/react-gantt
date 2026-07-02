@@ -109,15 +109,16 @@ export function TaskBar<TTaskMeta>({
     placement: "top",
     middleware: [offset(8), flip(), shift({ padding: 8 })],
   });
+  const { setReference: setFloatingReference, setFloating } = refs;
   const range = dateRangeToPixels(task.start, task.end, timeline, viewMode);
   const width = Math.max(range.width, 36);
   const progress = Math.max(0, Math.min(task.progress ?? 0, 100));
   const setReference = useCallback(
     (node: HTMLDivElement | null) => {
-      refs.setReference(node);
+      setFloatingReference(node);
       setDropNodeRef(node);
     },
-    [refs, setDropNodeRef]
+    [setDropNodeRef, setFloatingReference]
   );
 
   return (
@@ -171,7 +172,7 @@ export function TaskBar<TTaskMeta>({
       </div>
       {open && (
         <div
-          ref={refs.setFloating}
+          ref={setFloating}
           className="sokkay-gantt__tooltip"
           style={floatingStyles}
           role="tooltip"

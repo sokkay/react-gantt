@@ -1,5 +1,6 @@
 export { GanttChart } from "./GanttChart";
 export type {
+  CollapsedProjectSummary,
   ContextMenuActions,
   GanttChartHandle,
   GanttChartProps,

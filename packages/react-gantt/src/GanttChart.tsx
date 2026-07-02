@@ -25,6 +25,7 @@ import {
 } from "./constants";
 import type { InteractionKind, PointerInteraction } from "./internal-types";
 import type {
+  CollapsedProjectSummary,
   ContextMenuActions,
   GanttChartHandle,
   GanttChartProps,
@@ -185,6 +186,68 @@ function getProjectOrder<TProjectMeta, TTaskMeta>(
   return arrayMove(projects, oldIndex, newIndex);
 }
 
+function getCollapsedProjectSummary<TProjectMeta, TTaskMeta>(
+  project: NormalizedGanttProject<TProjectMeta, TTaskMeta>
+): CollapsedProjectSummary<TProjectMeta, TTaskMeta> | null {
+  if (project.tasks.length === 0) {
+    return null;
+  }
+
+  const start = project.tasks.reduce(
+    (earliest, task) => (task.start < earliest ? task.start : earliest),
+    project.tasks[0].start
+  );
+  const end = project.tasks.reduce(
+    (latest, task) => (task.end > latest ? task.end : latest),
+    project.tasks[0].end
+  );
+
+  return {
+    project,
+    start,
+    end,
+    taskCount: project.tasks.length,
+  };
+}
+
+function CollapsedProjectSummaryBar<TProjectMeta, TTaskMeta>({
+  summary,
+  timeline,
+  viewMode,
+  className,
+  renderCollapsedProjectSummary,
+}: {
+  summary: CollapsedProjectSummary<TProjectMeta, TTaskMeta>;
+  timeline: TimelineModel;
+  viewMode: GanttViewMode;
+  className?: string;
+  renderCollapsedProjectSummary?: GanttChartProps<
+    TProjectMeta,
+    TTaskMeta
+  >["renderCollapsedProjectSummary"];
+}) {
+  const left = dateToPixels(summary.start, timeline, viewMode);
+  const right = dateToPixels(summary.end, timeline, viewMode);
+  const width = Math.max(right - left, 36);
+
+  return (
+    <div
+      className={cx("sokkay-gantt__collapsed-summary", className)}
+      data-testid={`project-summary-${summary.project.id}`}
+      style={{ left, width }}
+    >
+      {renderCollapsedProjectSummary ? (
+        renderCollapsedProjectSummary(summary)
+      ) : (
+        <>
+          <strong>{summary.project.name}</strong>
+          <span>{summary.taskCount} tasks</span>
+        </>
+      )}
+    </div>
+  );
+}
+
 function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
   {
     projects,
@@ -216,6 +279,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     renderSidebarHeader,
     renderHeaderCell,
     renderTimelineCell,
+    renderCollapsedProjectSummary,
   }: GanttChartProps<TProjectMeta, TTaskMeta>,
   ref: React.ForwardedRef<GanttChartHandle>
 ) {
@@ -732,6 +796,23 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       {renderTimelineCell ? renderTimelineCell(cell) : null}
                     </div>
                   ))}
+                  {(() => {
+                    const summary = layout.collapsed
+                      ? getCollapsedProjectSummary(layout.project)
+                      : null;
+
+                    return summary ? (
+                      <CollapsedProjectSummaryBar
+                        className={classNames?.collapsedSummary}
+                        summary={summary}
+                        timeline={timeline}
+                        viewMode={viewMode}
+                        renderCollapsedProjectSummary={
+                          renderCollapsedProjectSummary
+                        }
+                      />
+                    ) : null;
+                  })()}
                   {!layout.collapsed &&
                     layout.lanes.flatMap((lane) =>
                       lane.tasks.map((task) => (

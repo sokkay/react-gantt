@@ -39,6 +39,16 @@ export interface NormalizedGanttProject<
   tasks: Array<NormalizedGanttTask<TTaskMeta>>;
 }
 
+export interface CollapsedProjectSummary<
+  TProjectMeta = unknown,
+  TTaskMeta = unknown,
+> {
+  project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
+  start: Date;
+  end: Date;
+  taskCount: number;
+}
+
 export interface TaskMovePayload {
   taskId: string;
   projectId: string;
@@ -94,6 +104,7 @@ export interface GanttClassNames {
   timeline?: string;
   task?: string;
   selectedTask?: string;
+  collapsedSummary?: string;
 }
 
 export interface GanttTheme {
@@ -171,6 +182,9 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
     end: Date;
     label: string;
   }) => ReactNode;
+  renderCollapsedProjectSummary?: (
+    summary: CollapsedProjectSummary<TProjectMeta, TTaskMeta>
+  ) => ReactNode;
 }
 
 export interface GanttChartHandle {

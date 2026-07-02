@@ -20,6 +20,7 @@ Initial interactive base:
 - Task reorder within a project with `onTaskReorder`
 - Custom task rendering, tooltip, context menu, selection toolbar and project cell
 - Collapsible projects, controlled or uncontrolled
+- Collapsed project summary bars from first task start to last task end
 - Imperative handle via `useGanttChart`
 - Basic row virtualization and edge auto-scroll during drag
 - Theme and class name overrides
@@ -189,6 +190,7 @@ Customization:
 - `renderSelectionToolbar`
 - `renderEmptySelectionToolbar`
 - `renderProjectCell`
+- `renderCollapsedProjectSummary`
 - `renderSidebarHeader`
 - `renderHeaderCell`
 - `renderTimelineCell`

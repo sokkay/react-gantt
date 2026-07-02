@@ -125,7 +125,7 @@ describe("GanttChart", () => {
     );
   });
 
-  it("hides project tasks when the project is collapsed", () => {
+  it("shows a project summary bar when the project is collapsed", () => {
     render(
       <GanttChart
         projects={projects}
@@ -135,7 +135,9 @@ describe("GanttChart", () => {
     );
 
     expect(screen.queryByTestId("task-t1")).not.toBeInTheDocument();
-    expect(screen.getByText("Platform")).toBeInTheDocument();
+    expect(screen.getAllByText("Platform")).toHaveLength(2);
+    expect(screen.getByTestId("project-summary-p1")).toBeInTheDocument();
+    expect(screen.getByText("1 tasks")).toBeInTheDocument();
   });
 
   it("can keep the selection toolbar static without a selected task", () => {

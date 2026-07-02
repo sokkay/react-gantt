@@ -369,6 +369,15 @@ export default function App() {
                 <span>Pick a task to inspect it here.</span>
               </>
             )}
+            renderCollapsedProjectSummary={(summary) => (
+              <>
+                <strong>{summary.project.name}</strong>
+                <span>
+                  {format(summary.start, "MMM d")} -{" "}
+                  {format(summary.end, "MMM d")}
+                </span>
+              </>
+            )}
           />
         </div>
 

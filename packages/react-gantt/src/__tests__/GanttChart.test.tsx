@@ -136,7 +136,9 @@ describe("GanttChart", () => {
 
     expect(screen.queryByTestId("task-t1")).not.toBeInTheDocument();
     expect(screen.getAllByText("Platform")).toHaveLength(2);
-    expect(screen.getByTestId("project-summary-p1")).toBeInTheDocument();
+    expect(screen.getByTestId("project-summary-p1")).toHaveTextContent(
+      "Platform"
+    );
     expect(screen.getByText("1 tasks")).toBeInTheDocument();
   });
 

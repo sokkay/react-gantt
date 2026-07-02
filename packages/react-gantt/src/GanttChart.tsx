@@ -240,8 +240,12 @@ function CollapsedProjectSummaryBar<TProjectMeta, TTaskMeta>({
         renderCollapsedProjectSummary(summary)
       ) : (
         <>
-          <strong>{summary.project.name}</strong>
-          <span>{summary.taskCount} tasks</span>
+          <strong className="sokkay-gantt__collapsed-summary-name">
+            {summary.project.name}
+          </strong>
+          <span className="sokkay-gantt__collapsed-summary-meta">
+            {summary.taskCount} tasks
+          </span>
         </>
       )}
     </div>

@@ -371,9 +371,11 @@ export default function App() {
             )}
             renderCollapsedProjectSummary={(summary) => (
               <>
-                <strong>{summary.project.name}</strong>
-                <span>
-                  {format(summary.start, "MMM d")} -{" "}
+                <strong className="sokkay-gantt__collapsed-summary-name">
+                  {summary.project.name}
+                </strong>
+                <span className="sokkay-gantt__collapsed-summary-meta">
+                  {summary.taskCount} tasks - {format(summary.start, "MMM d")} -{" "}
                   {format(summary.end, "MMM d")}
                 </span>
               </>

@@ -244,7 +244,15 @@
   white-space: nowrap;
 }
 
-.sokkay-gantt__collapsed-summary span {
+.sokkay-gantt__collapsed-summary-name {
+  min-width: 0;
+  flex: 1;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.sokkay-gantt__collapsed-summary-meta {
+  flex: 0 1 auto;
   color: var(--sg-muted-text);
   font-size: 12px;
   font-weight: 650;

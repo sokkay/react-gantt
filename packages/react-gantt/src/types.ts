@@ -22,13 +22,18 @@ export interface GanttProject<TMeta = unknown, TTaskMeta = unknown> {
   meta?: TMeta;
 }
 
-export interface NormalizedGanttTask<TMeta = unknown> extends Omit<GanttTask<TMeta>, "start" | "end"> {
+export interface NormalizedGanttTask<TMeta = unknown> extends Omit<
+  GanttTask<TMeta>,
+  "start" | "end"
+> {
   start: Date;
   end: Date;
 }
 
-export interface NormalizedGanttProject<TMeta = unknown, TTaskMeta = unknown>
-  extends Omit<GanttProject<TMeta, TTaskMeta>, "tasks"> {
+export interface NormalizedGanttProject<
+  TMeta = unknown,
+  TTaskMeta = unknown,
+> extends Omit<GanttProject<TMeta, TTaskMeta>, "tasks"> {
   tasks: Array<NormalizedGanttTask<TTaskMeta>>;
 }
 
@@ -43,6 +48,14 @@ export interface TaskResizePayload extends TaskMovePayload {
   edge: "start" | "end";
 }
 
+export interface TaskReorderPayload<TTaskMeta = unknown> {
+  taskId: string;
+  projectId: string;
+  fromIndex: number;
+  toIndex: number;
+  tasks: Array<NormalizedGanttTask<TTaskMeta>>;
+}
+
 export interface TaskTransferPayload {
   taskId: string;
   fromProjectId: string;
@@ -50,7 +63,10 @@ export interface TaskTransferPayload {
   index: number;
 }
 
-export interface ProjectReorderPayload<TProjectMeta = unknown, TTaskMeta = unknown> {
+export interface ProjectReorderPayload<
+  TProjectMeta = unknown,
+  TTaskMeta = unknown,
+> {
   activeProjectId: string;
   overProjectId: string;
   projects: Array<NormalizedGanttProject<TProjectMeta, TTaskMeta>>;
@@ -91,27 +107,73 @@ export interface GanttTheme {
   rowHeight?: string;
   sidebarWidth?: string;
   headerHeight?: string;
+  taskHeight?: string;
+  laneGap?: string;
 }
 
 export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   projects: Array<GanttProject<TProjectMeta, TTaskMeta>>;
   viewMode: GanttViewMode;
   selectedTaskId?: string | null;
+  collapsedProjectIds?: string[];
+  defaultCollapsedProjectIds?: string[];
+  snapTo?: GanttViewMode | "none";
+  virtualized?: boolean;
+  overscan?: number;
   className?: string;
   classNames?: GanttClassNames;
   theme?: GanttTheme;
   onTaskMove?: (payload: TaskMovePayload) => void;
   onTaskResize?: (payload: TaskResizePayload) => void;
   onTaskTransfer?: (payload: TaskTransferPayload) => void;
-  onProjectReorder?: (payload: ProjectReorderPayload<TProjectMeta, TTaskMeta>) => void;
+  onTaskReorder?: (payload: TaskReorderPayload<TTaskMeta>) => void;
+  onProjectReorder?: (
+    payload: ProjectReorderPayload<TProjectMeta, TTaskMeta>
+  ) => void;
+  onProjectCollapseChange?: (
+    projectId: string,
+    collapsed: boolean,
+    collapsedProjectIds: string[]
+  ) => void;
   onTaskSelect?: (task: NormalizedGanttTask<TTaskMeta> | null) => void;
   onTaskContextMenu?: (payload: TaskContextMenuPayload<TTaskMeta>) => void;
-  renderTask?: (task: NormalizedGanttTask<TTaskMeta>, state: { selected: boolean }) => ReactNode;
+  renderTask?: (
+    task: NormalizedGanttTask<TTaskMeta>,
+    state: { selected: boolean }
+  ) => ReactNode;
   renderTaskTooltip?: (task: NormalizedGanttTask<TTaskMeta>) => ReactNode;
   renderContextMenu?: (ctx: {
     task: NormalizedGanttTask<TTaskMeta>;
     actions: ContextMenuActions;
   }) => ReactNode;
-  renderSelectionToolbar?: (task: NormalizedGanttTask<TTaskMeta>, actions: ContextMenuActions) => ReactNode;
-  renderProjectCell?: (project: NormalizedGanttProject<TProjectMeta, TTaskMeta>) => ReactNode;
+  renderSelectionToolbar?: (
+    task: NormalizedGanttTask<TTaskMeta>,
+    actions: ContextMenuActions
+  ) => ReactNode;
+  renderProjectCell?: (
+    project: NormalizedGanttProject<TProjectMeta, TTaskMeta>,
+    state: { collapsed: boolean; taskCount: number }
+  ) => ReactNode;
+  renderSidebarHeader?: () => ReactNode;
+  renderHeaderCell?: (cell: {
+    id: string;
+    start: Date;
+    end: Date;
+    label: string;
+  }) => ReactNode;
+  renderTimelineCell?: (cell: {
+    id: string;
+    start: Date;
+    end: Date;
+    label: string;
+  }) => ReactNode;
+}
+
+export interface GanttChartHandle {
+  scrollToDate: (date: GanttDateInput) => void;
+  scrollToTask: (taskId: string) => void;
+  selectTask: (taskId: string | null) => void;
+  collapseProject: (projectId: string) => void;
+  expandProject: (projectId: string) => void;
+  toggleProject: (projectId: string) => void;
 }

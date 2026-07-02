@@ -1,6 +1,7 @@
 export { GanttChart } from "./GanttChart";
 export type {
   ContextMenuActions,
+  GanttChartHandle,
   GanttChartProps,
   GanttClassNames,
   GanttDateInput,
@@ -13,9 +14,11 @@ export type {
   ProjectReorderPayload,
   TaskContextMenuPayload,
   TaskMovePayload,
+  TaskReorderPayload,
   TaskResizePayload,
   TaskTransferPayload,
 } from "./types";
+export { useGanttChart } from "./useGanttChart";
 export {
   addViewUnits,
   diffViewUnits,

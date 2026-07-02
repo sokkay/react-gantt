@@ -16,7 +16,12 @@ Initial interactive base:
 - Controlled task selection
 - Horizontal task drag with `onTaskMove`
 - Start/end resize with `onTaskResize`
+- Automatic task lanes when ranges overlap inside a project
+- Task reorder within a project with `onTaskReorder`
 - Custom task rendering, tooltip, context menu, selection toolbar and project cell
+- Collapsible projects, controlled or uncontrolled
+- Imperative handle via `useGanttChart`
+- Basic row virtualization and edge auto-scroll during drag
 - Theme and class name overrides
 - Basic project reorder and task transfer callbacks with `@dnd-kit`
 - Unit and component tests with Vitest and Testing Library
@@ -41,7 +46,11 @@ Peer dependencies:
 
 ```tsx
 import { useState } from "react";
-import { GanttChart, type GanttProject, type GanttViewMode } from "@sokkay/react-gantt";
+import {
+  GanttChart,
+  type GanttProject,
+  type GanttViewMode,
+} from "@sokkay/react-gantt";
 import "@sokkay/react-gantt/styles.css";
 
 const initialProjects: GanttProject[] = [
@@ -76,19 +85,53 @@ export function Example() {
         setProjects((items) =>
           items.map((project) => ({
             ...project,
-            tasks: project.tasks.map((task) => (task.id === taskId ? { ...task, start, end } : task)),
-          })),
+            tasks: project.tasks.map((task) =>
+              task.id === taskId ? { ...task, start, end } : task
+            ),
+          }))
         );
       }}
       onTaskResize={({ taskId, start, end }) => {
         setProjects((items) =>
           items.map((project) => ({
             ...project,
-            tasks: project.tasks.map((task) => (task.id === taskId ? { ...task, start, end } : task)),
-          })),
+            tasks: project.tasks.map((task) =>
+              task.id === taskId ? { ...task, start, end } : task
+            ),
+          }))
         );
       }}
     />
+  );
+}
+```
+
+## Operations Ref
+
+Use `useGanttChart` when a parent needs to drive chart operations.
+
+```tsx
+import { GanttChart, useGanttChart } from "@sokkay/react-gantt";
+
+export function Planner({ projects }) {
+  const ganttRef = useGanttChart();
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => ganttRef.current?.scrollToTask("api")}
+      >
+        Focus API
+      </button>
+      <button
+        type="button"
+        onClick={() => ganttRef.current?.toggleProject("platform")}
+      >
+        Toggle Platform
+      </button>
+      <GanttChart ref={ganttRef} projects={projects} viewMode="day" />
+    </>
   );
 }
 ```
@@ -124,9 +167,18 @@ Main callbacks:
 - `onTaskMove({ taskId, projectId, start, end })`
 - `onTaskResize({ taskId, projectId, edge, start, end })`
 - `onTaskTransfer({ taskId, fromProjectId, toProjectId, index })`
+- `onTaskReorder({ taskId, projectId, fromIndex, toIndex, tasks })`
 - `onProjectReorder({ activeProjectId, overProjectId, projects })`
+- `onProjectCollapseChange(projectId, collapsed, collapsedProjectIds)`
 - `onTaskSelect(task | null)`
 - `onTaskContextMenu({ task, event, actions })`
+
+Behavior props:
+
+- `collapsedProjectIds` / `defaultCollapsedProjectIds`
+- `snapTo`: `day`, `week`, `month`, `quarter`, `year` or `none`
+- `virtualized`
+- `overscan`
 
 Customization:
 
@@ -135,6 +187,9 @@ Customization:
 - `renderContextMenu`
 - `renderSelectionToolbar`
 - `renderProjectCell`
+- `renderSidebarHeader`
+- `renderHeaderCell`
+- `renderTimelineCell`
 - `classNames`
 - `theme`
 
@@ -168,6 +223,13 @@ Type-check:
 
 ```bash
 pnpm typecheck
+```
+
+Format:
+
+```bash
+pnpm format
+pnpm format:check
 ```
 
 ## Package Build

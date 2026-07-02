@@ -1,5 +1,3 @@
-import { addDays, format } from "date-fns";
-import { useMemo, useState } from "react";
 import {
   GanttChart,
   type GanttProject,
@@ -7,15 +5,21 @@ import {
   type GanttViewMode,
   type NormalizedGanttTask,
   type TaskMovePayload,
+  type TaskReorderPayload,
   type TaskResizePayload,
   type TaskTransferPayload,
+  useGanttChart,
 } from "@sokkay/react-gantt";
 import "@sokkay/react-gantt/styles.css";
+import { addDays, format } from "date-fns";
+import { useMemo, useState } from "react";
 import "./App.css";
 
 const viewModes: GanttViewMode[] = ["day", "week", "month", "quarter", "year"];
 
-const initialProjects: Array<GanttProject<{ owner: string }, { status: string }>> = [
+const initialProjects: Array<
+  GanttProject<{ owner: string }, { status: string }>
+> = [
   {
     id: "platform",
     name: "Platform",
@@ -40,6 +44,16 @@ const initialProjects: Array<GanttProject<{ owner: string }, { status: string }>
         progress: 72,
         color: "#0891b2",
         meta: { status: "Review" },
+      },
+      {
+        id: "lanes",
+        projectId: "platform",
+        name: "Lane layout",
+        start: "2026-07-08",
+        end: "2026-07-16",
+        progress: 30,
+        color: "#7c3aed",
+        meta: { status: "Planned" },
       },
     ],
   },
@@ -89,14 +103,49 @@ const initialProjects: Array<GanttProject<{ owner: string }, { status: string }>
   },
 ];
 
+const codeExamples = [
+  {
+    title: "Basic usage",
+    code: `import { GanttChart } from "@sokkay/react-gantt";
+import "@sokkay/react-gantt/styles.css";
+
+<GanttChart projects={projects} viewMode="month" />;`,
+  },
+  {
+    title: "Controlled editing",
+    code: `<GanttChart
+  projects={projects}
+  viewMode={viewMode}
+  selectedTaskId={selectedTaskId}
+  onTaskMove={({ taskId, start, end }) => updateTask(taskId, { start, end })}
+  onTaskResize={({ taskId, start, end }) => updateTask(taskId, { start, end })}
+  onTaskReorder={({ projectId, tasks }) => updateProjectTasks(projectId, tasks)}
+  onTaskSelect={(task) => setSelectedTaskId(task?.id ?? null)}
+/>`,
+  },
+  {
+    title: "Imperative operations",
+    code: `const ganttRef = useGanttChart();
+
+<GanttChart ref={ganttRef} projects={projects} viewMode="day" />;
+
+ganttRef.current?.scrollToTask("api");
+ganttRef.current?.collapseProject("platform");`,
+  },
+];
+
 function updateTask(
   projects: typeof initialProjects,
   taskId: string,
-  updater: (task: GanttTask<{ status: string }>) => GanttTask<{ status: string }>,
+  updater: (
+    task: GanttTask<{ status: string }>
+  ) => GanttTask<{ status: string }>
 ) {
   return projects.map((project) => ({
     ...project,
-    tasks: project.tasks.map((task) => (task.id === taskId ? updater(task) : task)),
+    tasks: project.tasks.map((task) =>
+      task.id === taskId ? updater(task) : task
+    ),
   }));
 }
 
@@ -105,14 +154,19 @@ function formatRange(task: NormalizedGanttTask<{ status: string }>) {
 }
 
 export default function App() {
+  const ganttRef = useGanttChart();
   const [projects, setProjects] = useState(initialProjects);
   const [viewMode, setViewMode] = useState<GanttViewMode>("day");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>("api");
+  const [collapsedProjectIds, setCollapsedProjectIds] = useState<string[]>([]);
   const [eventLog, setEventLog] = useState<string[]>([]);
 
   const selectedTask = useMemo(
-    () => projects.flatMap((project) => project.tasks).find((task) => task.id === selectedTaskId),
-    [projects, selectedTaskId],
+    () =>
+      projects
+        .flatMap((project) => project.tasks)
+        .find((task) => task.id === selectedTaskId),
+    [projects, selectedTaskId]
   );
 
   const pushLog = (message: string) => {
@@ -125,7 +179,7 @@ export default function App() {
         ...task,
         start: payload.start,
         end: payload.end,
-      })),
+      }))
     );
     pushLog(`move ${payload.taskId} -> ${format(payload.start, "yyyy-MM-dd")}`);
   };
@@ -136,14 +190,16 @@ export default function App() {
         ...task,
         start: payload.start,
         end: payload.end,
-      })),
+      }))
     );
     pushLog(`resize ${payload.taskId} ${payload.edge}`);
   };
 
   const handleTransfer = (payload: TaskTransferPayload) => {
     setProjects((items) => {
-      const movingTask = items.flatMap((project) => project.tasks).find((task) => task.id === payload.taskId);
+      const movingTask = items
+        .flatMap((project) => project.tasks)
+        .find((task) => task.id === payload.taskId);
 
       if (!movingTask) {
         return items;
@@ -151,7 +207,10 @@ export default function App() {
 
       return items.map((project) => {
         if (project.id === payload.fromProjectId) {
-          return { ...project, tasks: project.tasks.filter((task) => task.id !== payload.taskId) };
+          return {
+            ...project,
+            tasks: project.tasks.filter((task) => task.id !== payload.taskId),
+          };
         }
 
         if (project.id === payload.toProjectId) {
@@ -167,12 +226,35 @@ export default function App() {
     pushLog(`transfer ${payload.taskId} -> ${payload.toProjectId}`);
   };
 
+  const handleTaskReorder = (
+    payload: TaskReorderPayload<{ status: string }>
+  ) => {
+    setProjects((items) =>
+      items.map((project) =>
+        project.id === payload.projectId
+          ? {
+              ...project,
+              tasks: payload.tasks.map((task) => ({
+                ...task,
+                start: task.start,
+                end: task.end,
+              })),
+            }
+          : project
+      )
+    );
+    pushLog(`reorder task ${payload.taskId} -> ${payload.toIndex}`);
+  };
+
   return (
     <main className="docs-shell">
       <section className="docs-header">
         <div>
           <h1>@sokkay/react-gantt</h1>
-          <p>Controlled React Gantt chart with view modes, drag, resize, selection, tooltips and custom menus.</p>
+          <p>
+            Controlled React Gantt chart with view modes, drag, resize,
+            selection, tooltips and custom menus.
+          </p>
         </div>
         <div className="view-switcher" aria-label="View mode">
           {viewModes.map((mode) => (
@@ -186,27 +268,54 @@ export default function App() {
             </button>
           ))}
         </div>
+        <div className="docs-actions">
+          <button
+            type="button"
+            onClick={() => ganttRef.current?.scrollToTask("lanes")}
+          >
+            Scroll to lane task
+          </button>
+          <button
+            type="button"
+            onClick={() => ganttRef.current?.toggleProject("platform")}
+          >
+            Toggle Platform
+          </button>
+        </div>
       </section>
 
       <section className="demo-grid">
         <div className="gantt-panel">
           <GanttChart
+            ref={ganttRef}
             projects={projects}
             viewMode={viewMode}
             selectedTaskId={selectedTaskId}
+            collapsedProjectIds={collapsedProjectIds}
+            virtualized
             onTaskMove={handleMove}
             onTaskResize={handleResize}
             onTaskTransfer={handleTransfer}
-            onProjectReorder={({ projects: nextProjects, activeProjectId, overProjectId }) => {
+            onTaskReorder={handleTaskReorder}
+            onProjectReorder={({
+              projects: nextProjects,
+              activeProjectId,
+              overProjectId,
+            }) => {
               setProjects(nextProjects);
               pushLog(`reorder ${activeProjectId} over ${overProjectId}`);
             }}
+            onProjectCollapseChange={(_, __, nextIds) =>
+              setCollapsedProjectIds(nextIds)
+            }
             onTaskSelect={(task) => setSelectedTaskId(task?.id ?? null)}
             onTaskContextMenu={({ task }) => pushLog(`context ${task.id}`)}
-            renderProjectCell={(project) => (
+            renderProjectCell={(project, state) => (
               <span>
                 {project.name}
-                <small>{project.meta?.owner}</small>
+                <small>
+                  {state.taskCount} tasks - {project.meta?.owner}
+                </small>
               </span>
             )}
             renderTask={(task) => (
@@ -235,7 +344,7 @@ export default function App() {
                         ...currentTask,
                         start: addDays(new Date(currentTask.start), 1),
                         end: addDays(new Date(currentTask.end), 1),
-                      })),
+                      }))
                     );
                     actions.close();
                   }}
@@ -273,6 +382,20 @@ export default function App() {
             ))}
           </ol>
         </aside>
+      </section>
+
+      <section className="code-examples">
+        <h2>Code examples</h2>
+        <div className="code-grid">
+          {codeExamples.map((example) => (
+            <article key={example.title}>
+              <h3>{example.title}</h3>
+              <pre>
+                <code>{example.code}</code>
+              </pre>
+            </article>
+          ))}
+        </div>
       </section>
     </main>
   );

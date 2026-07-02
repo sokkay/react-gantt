@@ -7,6 +7,8 @@
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm --filter @sokkay/react-gantt build:css && pnpm --filter docs dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"
   },
@@ -21,6 +23,8 @@
     "autoprefixer": "^10.4.20",
     "jsdom": "^25.0.1",
     "postcss": "^8.4.49",
+    "prettier": "^3.9.4",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "tailwindcss": "^3.4.17",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",

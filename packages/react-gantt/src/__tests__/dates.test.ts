@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { addViewUnits, diffViewUnits, ensureMinimumRange, normalizeDate, shiftRangeByUnits, snapDate } from "../utils/dates";
+import {
+  addViewUnits,
+  diffViewUnits,
+  ensureMinimumRange,
+  normalizeDate,
+  shiftRangeByUnits,
+  snapDate,
+} from "../utils/dates";
 
 describe("date utilities", () => {
   it("normalizes Date, string and number inputs to day boundaries", () => {

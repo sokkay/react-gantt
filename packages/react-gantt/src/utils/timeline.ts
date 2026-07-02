@@ -33,12 +33,29 @@ export interface TimelineModel {
   width: number;
 }
 
-export function buildTimeline(projects: Array<NormalizedGanttProject>, viewMode: GanttViewMode): TimelineModel {
+export function buildTimeline(
+  projects: Array<NormalizedGanttProject>,
+  viewMode: GanttViewMode
+): TimelineModel {
   const tasks = projects.flatMap((project) => project.tasks);
-  const minStart = tasks.reduce<Date | null>((acc, task) => (!acc || task.start < acc ? task.start : acc), null);
-  const maxEnd = tasks.reduce<Date | null>((acc, task) => (!acc || task.end > acc ? task.end : acc), null);
-  const start = addViewUnits(snapDate(minStart ?? new Date(), viewMode), -1, viewMode);
-  const end = addViewUnits(snapDate(maxEnd ?? new Date(), viewMode), 2, viewMode);
+  const minStart = tasks.reduce<Date | null>(
+    (acc, task) => (!acc || task.start < acc ? task.start : acc),
+    null
+  );
+  const maxEnd = tasks.reduce<Date | null>(
+    (acc, task) => (!acc || task.end > acc ? task.end : acc),
+    null
+  );
+  const start = addViewUnits(
+    snapDate(minStart ?? new Date(), viewMode),
+    -1,
+    viewMode
+  );
+  const end = addViewUnits(
+    snapDate(maxEnd ?? new Date(), viewMode),
+    2,
+    viewMode
+  );
   const cellCount = Math.max(diffViewUnits(start, end, viewMode), 1);
   const cells = Array.from({ length: cellCount }, (_, index) => {
     const cellStart = addViewUnits(start, index, viewMode);
@@ -61,8 +78,15 @@ export function buildTimeline(projects: Array<NormalizedGanttProject>, viewMode:
   };
 }
 
-export function dateToPixels(date: Date, timeline: TimelineModel, viewMode: GanttViewMode) {
-  return diffViewUnits(timeline.start, snapDate(date, viewMode), viewMode) * timeline.cellWidth;
+export function dateToPixels(
+  date: Date,
+  timeline: TimelineModel,
+  viewMode: GanttViewMode
+) {
+  return (
+    diffViewUnits(timeline.start, snapDate(date, viewMode), viewMode) *
+    timeline.cellWidth
+  );
 }
 
 export function pixelsToUnits(deltaPixels: number, timeline: TimelineModel) {

@@ -16,7 +16,12 @@ import {
   startOfWeek,
   startOfYear,
 } from "date-fns";
-import type { GanttDateInput, GanttViewMode, GanttProject, NormalizedGanttProject } from "../types";
+import type {
+  GanttDateInput,
+  GanttProject,
+  GanttViewMode,
+  NormalizedGanttProject,
+} from "../types";
 
 export function normalizeDate(input: GanttDateInput): Date {
   const value = input instanceof Date ? input : new Date(input);
@@ -29,7 +34,7 @@ export function normalizeDate(input: GanttDateInput): Date {
 }
 
 export function normalizeProjects<TProjectMeta, TTaskMeta>(
-  projects: Array<GanttProject<TProjectMeta, TTaskMeta>>,
+  projects: Array<GanttProject<TProjectMeta, TTaskMeta>>
 ): Array<NormalizedGanttProject<TProjectMeta, TTaskMeta>> {
   return projects.map((project) => ({
     ...project,
@@ -57,7 +62,11 @@ export function snapDate(date: Date, viewMode: GanttViewMode): Date {
   }
 }
 
-export function addViewUnits(date: Date, amount: number, viewMode: GanttViewMode): Date {
+export function addViewUnits(
+  date: Date,
+  amount: number,
+  viewMode: GanttViewMode
+): Date {
   switch (viewMode) {
     case "day":
       return addDays(date, amount);
@@ -72,7 +81,11 @@ export function addViewUnits(date: Date, amount: number, viewMode: GanttViewMode
   }
 }
 
-export function diffViewUnits(start: Date, end: Date, viewMode: GanttViewMode): number {
+export function diffViewUnits(
+  start: Date,
+  end: Date,
+  viewMode: GanttViewMode
+): number {
   switch (viewMode) {
     case "day":
       return differenceInCalendarDays(end, start);
@@ -87,14 +100,23 @@ export function diffViewUnits(start: Date, end: Date, viewMode: GanttViewMode): 
   }
 }
 
-export function shiftRangeByUnits(start: Date, end: Date, units: number, viewMode: GanttViewMode) {
+export function shiftRangeByUnits(
+  start: Date,
+  end: Date,
+  units: number,
+  viewMode: GanttViewMode
+) {
   return {
     start: addViewUnits(start, units, viewMode),
     end: addViewUnits(end, units, viewMode),
   };
 }
 
-export function ensureMinimumRange(start: Date, end: Date, viewMode: GanttViewMode) {
+export function ensureMinimumRange(
+  start: Date,
+  end: Date,
+  viewMode: GanttViewMode
+) {
   if (diffViewUnits(start, end, viewMode) >= 1) {
     return { start, end };
   }

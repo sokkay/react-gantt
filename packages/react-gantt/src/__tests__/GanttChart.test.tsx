@@ -29,10 +29,18 @@ describe("GanttChart", () => {
 
   it("selects a task and can clear selection from the chart background", () => {
     const onTaskSelect = vi.fn();
-    const { container } = render(<GanttChart projects={projects} viewMode="day" onTaskSelect={onTaskSelect} />);
+    const { container } = render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        onTaskSelect={onTaskSelect}
+      />
+    );
 
     fireEvent.click(screen.getByTestId("task-t1"));
-    expect(onTaskSelect).toHaveBeenLastCalledWith(expect.objectContaining({ id: "t1" }));
+    expect(onTaskSelect).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: "t1" })
+    );
 
     fireEvent.click(container.querySelector(".sokkay-gantt") as Element);
     expect(onTaskSelect).toHaveBeenLastCalledWith(null);
@@ -44,7 +52,7 @@ describe("GanttChart", () => {
         projects={projects}
         viewMode="day"
         renderTaskTooltip={(task) => <span>Tooltip for {task.name}</span>}
-      />,
+      />
     );
 
     fireEvent.mouseEnter(screen.getByTestId("task-t1"));
@@ -58,8 +66,10 @@ describe("GanttChart", () => {
         projects={projects}
         viewMode="day"
         onTaskContextMenu={onTaskContextMenu}
-        renderContextMenu={({ task }) => <button type="button">Copy {task.name}</button>}
-      />,
+        renderContextMenu={({ task }) => (
+          <button type="button">Copy {task.name}</button>
+        )}
+      />
     );
 
     fireEvent.contextMenu(screen.getByTestId("task-t1"));
@@ -69,14 +79,21 @@ describe("GanttChart", () => {
       expect.objectContaining({
         task: expect.objectContaining({ id: "t1" }),
         actions: expect.any(Object),
-      }),
+      })
     );
   });
 
   it("emits move and resize payloads with dates", () => {
     const onTaskMove = vi.fn();
     const onTaskResize = vi.fn();
-    render(<GanttChart projects={projects} viewMode="day" onTaskMove={onTaskMove} onTaskResize={onTaskResize} />);
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        onTaskMove={onTaskMove}
+        onTaskResize={onTaskResize}
+      />
+    );
 
     const task = screen.getByTestId("task-t1");
     fireEvent.pointerDown(task, { clientX: 100 });
@@ -89,10 +106,13 @@ describe("GanttChart", () => {
         projectId: "p1",
         start: expect.any(Date),
         end: expect.any(Date),
-      }),
+      })
     );
 
-    fireEvent.pointerDown(task.querySelector(".sokkay-gantt__resize--end") as Element, { clientX: 100 });
+    fireEvent.pointerDown(
+      task.querySelector(".sokkay-gantt__resize--end") as Element,
+      { clientX: 100 }
+    );
     fireEvent.pointerMove(window, { clientX: 148 });
     fireEvent.pointerUp(window);
 
@@ -101,7 +121,20 @@ describe("GanttChart", () => {
         taskId: "t1",
         edge: "end",
         end: expect.any(Date),
-      }),
+      })
     );
+  });
+
+  it("hides project tasks when the project is collapsed", () => {
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        collapsedProjectIds={["p1"]}
+      />
+    );
+
+    expect(screen.queryByTestId("task-t1")).not.toBeInTheDocument();
+    expect(screen.getByText("Platform")).toBeInTheDocument();
   });
 });

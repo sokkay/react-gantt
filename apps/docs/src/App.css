@@ -13,6 +13,10 @@
   gap: 20px;
 }
 
+.docs-header > div:first-child {
+  min-width: 0;
+}
+
 .docs-header h1 {
   margin: 0;
   color: #111827;
@@ -55,6 +59,24 @@
 .view-switcher button.is-active {
   background: #111827;
   color: #ffffff;
+}
+
+.docs-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.docs-actions button {
+  border: 1px solid #cfd8e3;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  padding: 9px 12px;
 }
 
 .demo-grid {
@@ -135,6 +157,49 @@
   gap: 3px;
 }
 
+.code-examples {
+  display: grid;
+  gap: 14px;
+}
+
+.code-examples h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 18px;
+}
+
+.code-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.code-grid article {
+  overflow: hidden;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.code-grid h3 {
+  margin: 0;
+  border-bottom: 1px solid #d8dee8;
+  color: #111827;
+  font-size: 14px;
+  padding: 12px 14px;
+}
+
+.code-grid pre {
+  overflow: auto;
+  margin: 0;
+  background: #111827;
+  color: #f8fafc;
+  font-size: 12px;
+  line-height: 1.55;
+  min-height: 210px;
+  padding: 14px;
+}
+
 @media (max-width: 920px) {
   .docs-shell {
     padding: 16px;
@@ -145,7 +210,8 @@
     flex-direction: column;
   }
 
-  .demo-grid {
+  .demo-grid,
+  .code-grid {
     grid-template-columns: 1fr;
   }
 }

@@ -180,6 +180,7 @@ Behavior props:
 - `selectionToolbarMode`: `auto`, `static` or `hidden`
 - `labels`: translated UI strings and aria labels
 - `sidebarWidth` / `minSidebarWidth`: fixed project sidebar sizing
+- `onSidebarWidthChange`: receives sidebar resize changes from the drag handle
 - `snapTo`: `day`, `week`, `month`, `quarter`, `year` or `none`
 - `virtualized`
 - `overscan`

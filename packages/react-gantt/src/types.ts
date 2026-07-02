@@ -156,6 +156,7 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   overscan?: number;
   sidebarWidth?: string | number;
   minSidebarWidth?: string | number;
+  onSidebarWidthChange?: (width: number) => void;
   className?: string;
   classNames?: GanttClassNames;
   theme?: GanttTheme;

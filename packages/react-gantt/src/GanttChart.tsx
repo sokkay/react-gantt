@@ -63,6 +63,19 @@ function toCssSize(value?: string | number) {
   return typeof value === "number" ? `${value}px` : value;
 }
 
+function toPixelNumber(value: string | number | undefined, fallback: number) {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string" && value.endsWith("px")) {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  return fallback;
+}
+
 function createThemeStyle({
   theme,
   sidebarWidth,
@@ -285,6 +298,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     overscan = 2,
     sidebarWidth,
     minSidebarWidth,
+    onSidebarWidthChange,
     className,
     classNames,
     theme,
@@ -311,6 +325,20 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
   ref: React.ForwardedRef<GanttChartHandle>
 ) {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const sidebarWidthFallback = toPixelNumber(
+    sidebarWidth ?? theme?.sidebarWidth,
+    240
+  );
+  const sidebarMinWidth = toPixelNumber(
+    minSidebarWidth ?? theme?.minSidebarWidth,
+    220
+  );
+  const [internalSidebarWidth, setInternalSidebarWidth] =
+    useState(sidebarWidthFallback);
+  const effectiveSidebarWidth = Math.max(
+    toPixelNumber(sidebarWidth, internalSidebarWidth),
+    sidebarMinWidth
+  );
   const resolvedLabels = useMemo(
     () =>
       ({
@@ -472,6 +500,36 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     }
   }, []);
 
+  const handleSidebarResizeStart = useCallback(
+    (event: React.PointerEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const startX = event.clientX;
+      const startWidth = effectiveSidebarWidth;
+
+      const handleMove = (moveEvent: PointerEvent) => {
+        const nextWidth = Math.max(
+          sidebarMinWidth,
+          startWidth + moveEvent.clientX - startX
+        );
+
+        if (sidebarWidth === undefined) {
+          setInternalSidebarWidth(nextWidth);
+        }
+
+        onSidebarWidthChange?.(nextWidth);
+      };
+
+      const handleUp = () => {
+        window.removeEventListener("pointermove", handleMove);
+      };
+
+      window.addEventListener("pointermove", handleMove);
+      window.addEventListener("pointerup", handleUp, { once: true });
+    },
+    [effectiveSidebarWidth, onSidebarWidthChange, sidebarMinWidth, sidebarWidth]
+  );
+
   useImperativeHandle(
     ref,
     () => ({
@@ -527,6 +585,14 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
   useEffect(() => {
     handleScroll();
   }, [handleScroll]);
+
+  useEffect(() => {
+    if (sidebarWidth !== undefined) {
+      setInternalSidebarWidth(
+        toPixelNumber(sidebarWidth, sidebarWidthFallback)
+      );
+    }
+  }, [sidebarWidth, sidebarWidthFallback]);
 
   useEffect(() => {
     if (!interaction) {
@@ -705,7 +771,11 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
       <div
         ref={rootRef}
         className={cx("sokkay-gantt", className, classNames?.root)}
-        style={createThemeStyle({ theme, sidebarWidth, minSidebarWidth })}
+        style={createThemeStyle({
+          theme,
+          sidebarWidth: effectiveSidebarWidth,
+          minSidebarWidth: sidebarMinWidth,
+        })}
         onScroll={handleScroll}
         onClick={() => onTaskSelect?.(null)}
       >
@@ -750,6 +820,12 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
             {renderSidebarHeader
               ? renderSidebarHeader()
               : resolvedLabels.projectHeader}
+            <span
+              className="sokkay-gantt__sidebar-resize"
+              role="separator"
+              aria-orientation="vertical"
+              onPointerDown={handleSidebarResizeStart}
+            />
           </div>
           <div
             className={cx(
@@ -776,6 +852,12 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
         >
           <div className="sokkay-gantt__body">
             <div className="sokkay-gantt__sidebar">
+              <span
+                className="sokkay-gantt__sidebar-resize sokkay-gantt__sidebar-resize--body"
+                role="separator"
+                aria-orientation="vertical"
+                onPointerDown={handleSidebarResizeStart}
+              />
               {topSpacer > 0 && (
                 <div
                   className="sokkay-gantt__virtual-spacer"

@@ -172,6 +172,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState<GanttViewMode>("day");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>("api");
   const [collapsedProjectIds, setCollapsedProjectIds] = useState<string[]>([]);
+  const [sidebarWidth, setSidebarWidth] = useState(300);
   const [eventLog, setEventLog] = useState<string[]>([]);
 
   const selectedTask = useMemo(
@@ -307,8 +308,9 @@ export default function App() {
             selectionToolbarMode="static"
             collapsedProjectIds={collapsedProjectIds}
             virtualized
-            sidebarWidth={300}
+            sidebarWidth={sidebarWidth}
             minSidebarWidth={240}
+            onSidebarWidthChange={setSidebarWidth}
             labels={{
               projectHeader: "Proyecto",
               noTaskSelected: "Ninguna tarea seleccionada",
@@ -420,6 +422,8 @@ export default function App() {
             <dd>{selectedTask?.name ?? "None"}</dd>
             <dt>Projects</dt>
             <dd>{projects.length}</dd>
+            <dt>Sidebar</dt>
+            <dd>{Math.round(sidebarWidth)}px</dd>
           </dl>
           <h2>Events</h2>
           <ol>

@@ -307,6 +307,8 @@ export default function App() {
             selectionToolbarMode="static"
             collapsedProjectIds={collapsedProjectIds}
             virtualized
+            sidebarWidth={300}
+            minSidebarWidth={240}
             labels={{
               projectHeader: "Proyecto",
               noTaskSelected: "Ninguna tarea seleccionada",

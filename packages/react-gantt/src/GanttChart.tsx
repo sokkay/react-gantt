@@ -59,26 +59,37 @@ interface ContextMenuState<TTaskMeta> {
   y: number;
 }
 
-function createThemeStyle(theme?: GanttTheme) {
-  if (!theme) {
-    return undefined;
-  }
+function toCssSize(value?: string | number) {
+  return typeof value === "number" ? `${value}px` : value;
+}
 
+function createThemeStyle({
+  theme,
+  sidebarWidth,
+  minSidebarWidth,
+}: {
+  theme?: GanttTheme;
+  sidebarWidth?: string | number;
+  minSidebarWidth?: string | number;
+}) {
   return {
-    "--sg-background": theme.background,
-    "--sg-surface": theme.surface,
-    "--sg-border": theme.border,
-    "--sg-text": theme.text,
-    "--sg-muted-text": theme.mutedText,
-    "--sg-grid": theme.grid,
-    "--sg-task": theme.task,
-    "--sg-task-text": theme.taskText,
-    "--sg-selected": theme.selected,
-    "--sg-row-height": theme.rowHeight,
-    "--sg-sidebar-width": theme.sidebarWidth,
-    "--sg-header-height": theme.headerHeight,
-    "--sg-task-height": theme.taskHeight,
-    "--sg-lane-gap": theme.laneGap,
+    "--sg-background": theme?.background,
+    "--sg-surface": theme?.surface,
+    "--sg-border": theme?.border,
+    "--sg-text": theme?.text,
+    "--sg-muted-text": theme?.mutedText,
+    "--sg-grid": theme?.grid,
+    "--sg-task": theme?.task,
+    "--sg-task-text": theme?.taskText,
+    "--sg-selected": theme?.selected,
+    "--sg-row-height": theme?.rowHeight,
+    "--sg-sidebar-width": toCssSize(sidebarWidth ?? theme?.sidebarWidth),
+    "--sg-sidebar-min-width": toCssSize(
+      minSidebarWidth ?? theme?.minSidebarWidth
+    ),
+    "--sg-header-height": theme?.headerHeight,
+    "--sg-task-height": theme?.taskHeight,
+    "--sg-lane-gap": theme?.laneGap,
   } as React.CSSProperties;
 }
 
@@ -272,6 +283,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     snapTo = viewMode,
     virtualized = false,
     overscan = 2,
+    sidebarWidth,
+    minSidebarWidth,
     className,
     classNames,
     theme,
@@ -692,7 +705,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
       <div
         ref={rootRef}
         className={cx("sokkay-gantt", className, classNames?.root)}
-        style={createThemeStyle(theme)}
+        style={createThemeStyle({ theme, sidebarWidth, minSidebarWidth })}
         onScroll={handleScroll}
         onClick={() => onTaskSelect?.(null)}
       >

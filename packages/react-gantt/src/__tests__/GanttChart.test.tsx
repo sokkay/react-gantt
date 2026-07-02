@@ -186,4 +186,19 @@ describe("GanttChart", () => {
     expect(screen.getByText("Proyecto")).toBeInTheDocument();
     expect(screen.getByText("Sin seleccion")).toBeInTheDocument();
   });
+
+  it("applies configurable sidebar sizing", () => {
+    const { container } = render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        sidebarWidth={320}
+        minSidebarWidth={260}
+      />
+    );
+
+    const root = container.querySelector(".sokkay-gantt") as HTMLElement;
+    expect(root.style.getPropertyValue("--sg-sidebar-width")).toBe("320px");
+    expect(root.style.getPropertyValue("--sg-sidebar-min-width")).toBe("260px");
+  });
 });

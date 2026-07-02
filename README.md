@@ -179,6 +179,7 @@ Behavior props:
 - `collapsedProjectIds` / `defaultCollapsedProjectIds`
 - `selectionToolbarMode`: `auto`, `static` or `hidden`
 - `labels`: translated UI strings and aria labels
+- `sidebarWidth` / `minSidebarWidth`: fixed project sidebar sizing
 - `snapTo`: `day`, `week`, `month`, `quarter`, `year` or `none`
 - `virtualized`
 - `overscan`

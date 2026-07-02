@@ -15,6 +15,7 @@
   --sg-task-height: 34px;
   --sg-lane-gap: 10px;
   --sg-sidebar-width: 240px;
+  --sg-sidebar-min-width: 220px;
   --sg-header-height: 44px;
   position: relative;
   overflow: auto;
@@ -92,16 +93,16 @@
 
 .sokkay-gantt__sidebar-header,
 .sokkay-gantt__project-cell {
-  position: sticky;
-  left: 0;
-  z-index: 5;
-  width: var(--sg-sidebar-width);
-  min-width: var(--sg-sidebar-width);
+  width: max(var(--sg-sidebar-width), var(--sg-sidebar-min-width));
+  min-width: max(var(--sg-sidebar-width), var(--sg-sidebar-min-width));
   border-right: 1px solid var(--sg-border);
   background: var(--sg-surface);
 }
 
 .sokkay-gantt__sidebar-header {
+  position: sticky;
+  left: 0;
+  z-index: 15;
   display: flex;
   height: var(--sg-header-height);
   align-items: center;
@@ -128,10 +129,19 @@
   white-space: nowrap;
 }
 
-.sokkay-gantt__sidebar,
 .sokkay-gantt__timeline {
   display: flex;
   flex-direction: column;
+}
+
+.sokkay-gantt__sidebar {
+  position: sticky;
+  left: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  width: max(var(--sg-sidebar-width), var(--sg-sidebar-min-width));
+  min-width: max(var(--sg-sidebar-width), var(--sg-sidebar-min-width));
 }
 
 .sokkay-gantt__project-cell,

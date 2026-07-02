@@ -138,6 +138,7 @@ export interface GanttTheme {
   selected?: string;
   rowHeight?: string;
   sidebarWidth?: string;
+  minSidebarWidth?: string;
   headerHeight?: string;
   taskHeight?: string;
   laneGap?: string;
@@ -153,6 +154,8 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   snapTo?: GanttViewMode | "none";
   virtualized?: boolean;
   overscan?: number;
+  sidebarWidth?: string | number;
+  minSidebarWidth?: string | number;
   className?: string;
   classNames?: GanttClassNames;
   theme?: GanttTheme;

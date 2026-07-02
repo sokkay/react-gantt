@@ -13,6 +13,7 @@ import { useCallback, useState } from "react";
 import type { InteractionKind } from "../internal-types";
 import type {
   GanttChartProps,
+  GanttLabels,
   GanttViewMode,
   NormalizedGanttTask,
 } from "../types";
@@ -20,12 +21,14 @@ import { cx } from "../utils/cx";
 import { diffViewUnits } from "../utils/dates";
 import { dateToPixels, type TimelineModel } from "../utils/timeline";
 
-function TransferHandle({
+function TransferHandle<TTaskMeta>({
   task,
   index,
+  labels,
 }: {
-  task: NormalizedGanttTask;
+  task: NormalizedGanttTask<TTaskMeta>;
   index: number;
+  labels: Pick<GanttLabels<unknown, TTaskMeta>, "transferTask">;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -39,7 +42,7 @@ function TransferHandle({
       className={cx("sokkay-gantt__task-transfer", isDragging && "is-dragging")}
       style={{ transform: CSS.Transform.toString(transform) }}
       type="button"
-      aria-label={`Move ${task.name} to another project`}
+      aria-label={labels.transferTask(task)}
       {...attributes}
       {...listeners}
     >
@@ -68,6 +71,7 @@ export function TaskBar<TTaskMeta>({
   viewMode,
   renderTask,
   renderTaskTooltip,
+  labels,
   onPointerStart,
   onSelect,
   onContextMenu,
@@ -81,6 +85,7 @@ export function TaskBar<TTaskMeta>({
   viewMode: GanttViewMode;
   renderTask?: GanttChartProps<unknown, TTaskMeta>["renderTask"];
   renderTaskTooltip?: GanttChartProps<unknown, TTaskMeta>["renderTaskTooltip"];
+  labels: Pick<GanttLabels<unknown, TTaskMeta>, "transferTask">;
   onPointerStart: (
     event: React.PointerEvent,
     kind: InteractionKind,
@@ -160,7 +165,7 @@ export function TaskBar<TTaskMeta>({
             <span>{task.name}</span>
           )}
         </div>
-        <TransferHandle task={task} index={index} />
+        <TransferHandle task={task} index={index} labels={labels} />
         <span
           className="sokkay-gantt__resize sokkay-gantt__resize--end"
           onPointerDown={(event) => onPointerStart(event, "resize-end", task)}

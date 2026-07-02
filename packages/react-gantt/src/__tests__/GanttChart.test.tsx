@@ -139,7 +139,7 @@ describe("GanttChart", () => {
     expect(screen.getByTestId("project-summary-p1")).toHaveTextContent(
       "Platform"
     );
-    expect(screen.getByText("1 tasks")).toBeInTheDocument();
+    expect(screen.getByText("1 task")).toBeInTheDocument();
   });
 
   it("can keep the selection toolbar static without a selected task", () => {
@@ -166,5 +166,24 @@ describe("GanttChart", () => {
     );
 
     expect(screen.queryByText("Clear")).not.toBeInTheDocument();
+  });
+
+  it("uses translated labels", () => {
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        selectedTaskId={null}
+        selectionToolbarMode="static"
+        labels={{
+          projectHeader: "Proyecto",
+          noTaskSelected: "Sin seleccion",
+          taskCount: (count) => `${count} tareas`,
+        }}
+      />
+    );
+
+    expect(screen.getByText("Proyecto")).toBeInTheDocument();
+    expect(screen.getByText("Sin seleccion")).toBeInTheDocument();
   });
 });

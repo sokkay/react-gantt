@@ -49,6 +49,25 @@ export interface CollapsedProjectSummary<
   taskCount: number;
 }
 
+export interface GanttLabels<TProjectMeta = unknown, TTaskMeta = unknown> {
+  projectHeader: string;
+  noTaskSelected: string;
+  clearSelection: string;
+  selectAction: string;
+  closeAction: string;
+  taskCount: (count: number) => string;
+  reorderProject: (
+    project: NormalizedGanttProject<TProjectMeta, TTaskMeta>
+  ) => string;
+  collapseProject: (
+    project: NormalizedGanttProject<TProjectMeta, TTaskMeta>
+  ) => string;
+  expandProject: (
+    project: NormalizedGanttProject<TProjectMeta, TTaskMeta>
+  ) => string;
+  transferTask: (task: NormalizedGanttTask<TTaskMeta>) => string;
+}
+
 export interface TaskMovePayload {
   taskId: string;
   projectId: string;
@@ -137,6 +156,7 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   className?: string;
   classNames?: GanttClassNames;
   theme?: GanttTheme;
+  labels?: Partial<GanttLabels<TProjectMeta, TTaskMeta>>;
   onTaskMove?: (payload: TaskMovePayload) => void;
   onTaskResize?: (payload: TaskResizePayload) => void;
   onTaskTransfer?: (payload: TaskTransferPayload) => void;

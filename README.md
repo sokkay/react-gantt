@@ -178,9 +178,31 @@ Behavior props:
 
 - `collapsedProjectIds` / `defaultCollapsedProjectIds`
 - `selectionToolbarMode`: `auto`, `static` or `hidden`
+- `labels`: translated UI strings and aria labels
 - `snapTo`: `day`, `week`, `month`, `quarter`, `year` or `none`
 - `virtualized`
 - `overscan`
+
+Labels:
+
+```tsx
+<GanttChart
+  projects={projects}
+  viewMode="day"
+  labels={{
+    projectHeader: "Proyecto",
+    noTaskSelected: "Ninguna tarea seleccionada",
+    clearSelection: "Limpiar",
+    selectAction: "Seleccionar",
+    closeAction: "Cerrar",
+    taskCount: (count) => `${count} ${count === 1 ? "tarea" : "tareas"}`,
+    reorderProject: (project) => `Reordenar ${project.name}`,
+    collapseProject: (project) => `Colapsar ${project.name}`,
+    expandProject: (project) => `Expandir ${project.name}`,
+    transferTask: (task) => `Mover ${task.name} a otro proyecto`,
+  }}
+/>
+```
 
 Customization:
 

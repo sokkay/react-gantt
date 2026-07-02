@@ -132,6 +132,19 @@ import "@sokkay/react-gantt/styles.css";
 ganttRef.current?.scrollToTask("api");
 ganttRef.current?.collapseProject("platform");`,
   },
+  {
+    title: "Translated labels",
+    code: `<GanttChart
+  projects={projects}
+  viewMode="day"
+  labels={{
+    projectHeader: "Proyecto",
+    noTaskSelected: "Ninguna tarea seleccionada",
+    clearSelection: "Limpiar",
+    taskCount: (count) => \`\${count} tareas\`,
+  }}
+/>`,
+  },
 ];
 
 function updateTask(
@@ -294,6 +307,19 @@ export default function App() {
             selectionToolbarMode="static"
             collapsedProjectIds={collapsedProjectIds}
             virtualized
+            labels={{
+              projectHeader: "Proyecto",
+              noTaskSelected: "Ninguna tarea seleccionada",
+              clearSelection: "Limpiar",
+              selectAction: "Seleccionar",
+              closeAction: "Cerrar",
+              taskCount: (count) =>
+                `${count} ${count === 1 ? "tarea" : "tareas"}`,
+              reorderProject: (project) => `Reordenar ${project.name}`,
+              collapseProject: (project) => `Colapsar ${project.name}`,
+              expandProject: (project) => `Expandir ${project.name}`,
+              transferTask: (task) => `Mover ${task.name} a otro proyecto`,
+            }}
             onTaskMove={handleMove}
             onTaskResize={handleResize}
             onTaskTransfer={handleTransfer}
@@ -365,8 +391,8 @@ export default function App() {
             )}
             renderEmptySelectionToolbar={() => (
               <>
-                <strong>No task selected</strong>
-                <span>Pick a task to inspect it here.</span>
+                <strong>Ninguna tarea seleccionada</strong>
+                <span>Selecciona una tarea para verla aqui.</span>
               </>
             )}
             renderCollapsedProjectSummary={(summary) => (
@@ -375,8 +401,8 @@ export default function App() {
                   {summary.project.name}
                 </strong>
                 <span className="sokkay-gantt__collapsed-summary-meta">
-                  {summary.taskCount} tasks - {format(summary.start, "MMM d")} -{" "}
-                  {format(summary.end, "MMM d")}
+                  {summary.taskCount} tareas - {format(summary.start, "MMM d")}{" "}
+                  - {format(summary.end, "MMM d")}
                 </span>
               </>
             )}

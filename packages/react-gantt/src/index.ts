@@ -1,4 +1,5 @@
 export { GanttChart } from "./GanttChart";
+export { defaultGanttLabels } from "./labels";
 export type {
   CollapsedProjectSummary,
   ContextMenuActions,
@@ -6,6 +7,7 @@ export type {
   GanttChartProps,
   GanttClassNames,
   GanttDateInput,
+  GanttLabels,
   GanttProject,
   GanttSelectionToolbarMode,
   GanttTask,

@@ -3,7 +3,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 import type * as React from "react";
-import type { NormalizedGanttProject } from "../types";
+import type { GanttLabels, NormalizedGanttProject } from "../types";
 import { cx } from "../utils/cx";
 
 export function SortableProjectCell<TProjectMeta, TTaskMeta>({
@@ -12,6 +12,7 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   className,
   collapsed,
   height,
+  labels,
   onToggle,
 }: {
   project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
@@ -19,6 +20,10 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   className?: string;
   collapsed: boolean;
   height: number;
+  labels: Pick<
+    GanttLabels<TProjectMeta, TTaskMeta>,
+    "reorderProject" | "collapseProject" | "expandProject"
+  >;
   onToggle: () => void;
 }) {
   const {
@@ -50,7 +55,7 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
       <button
         className="sokkay-gantt__project-grip"
         type="button"
-        aria-label={`Reorder ${project.name}`}
+        aria-label={labels.reorderProject(project)}
         {...attributes}
         {...listeners}
       >
@@ -59,7 +64,11 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
       <button
         className="sokkay-gantt__project-toggle"
         type="button"
-        aria-label={`${collapsed ? "Expand" : "Collapse"} ${project.name}`}
+        aria-label={
+          collapsed
+            ? labels.expandProject(project)
+            : labels.collapseProject(project)
+        }
         onClick={onToggle}
       >
         {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}

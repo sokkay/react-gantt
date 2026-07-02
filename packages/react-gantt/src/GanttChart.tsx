@@ -24,11 +24,13 @@ import {
   DEFAULT_TASK_HEIGHT,
 } from "./constants";
 import type { InteractionKind, PointerInteraction } from "./internal-types";
+import { defaultGanttLabels } from "./labels";
 import type {
   CollapsedProjectSummary,
   ContextMenuActions,
   GanttChartHandle,
   GanttChartProps,
+  GanttLabels,
   GanttTheme,
   GanttViewMode,
   NormalizedGanttProject,
@@ -215,12 +217,14 @@ function CollapsedProjectSummaryBar<TProjectMeta, TTaskMeta>({
   timeline,
   viewMode,
   className,
+  labels,
   renderCollapsedProjectSummary,
 }: {
   summary: CollapsedProjectSummary<TProjectMeta, TTaskMeta>;
   timeline: TimelineModel;
   viewMode: GanttViewMode;
   className?: string;
+  labels: Pick<GanttLabels<TProjectMeta, TTaskMeta>, "taskCount">;
   renderCollapsedProjectSummary?: GanttChartProps<
     TProjectMeta,
     TTaskMeta
@@ -244,7 +248,7 @@ function CollapsedProjectSummaryBar<TProjectMeta, TTaskMeta>({
             {summary.project.name}
           </strong>
           <span className="sokkay-gantt__collapsed-summary-meta">
-            {summary.taskCount} tasks
+            {labels.taskCount(summary.taskCount)}
           </span>
         </>
       )}
@@ -266,6 +270,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     className,
     classNames,
     theme,
+    labels,
     onTaskMove,
     onTaskResize,
     onTaskTransfer,
@@ -288,6 +293,14 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
   ref: React.ForwardedRef<GanttChartHandle>
 ) {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const resolvedLabels = useMemo(
+    () =>
+      ({
+        ...defaultGanttLabels,
+        ...labels,
+      }) as GanttLabels<TProjectMeta, TTaskMeta>,
+    [labels]
+  );
   const normalizedProjects = useMemo(
     () => normalizeProjects(projects),
     [projects]
@@ -695,7 +708,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                 <>
                   <strong>{selectedTask.name}</strong>
                   <button type="button" onClick={() => onTaskSelect?.(null)}>
-                    Clear
+                    {resolvedLabels.clearSelection}
                   </button>
                 </>
               )
@@ -706,7 +719,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
               })
             ) : (
               <span className="sokkay-gantt__selection-placeholder">
-                No task selected
+                {resolvedLabels.noTaskSelected}
               </span>
             )}
           </div>
@@ -716,7 +729,9 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
           <div
             className={cx("sokkay-gantt__sidebar-header", classNames?.sidebar)}
           >
-            {renderSidebarHeader ? renderSidebarHeader() : "Project"}
+            {renderSidebarHeader
+              ? renderSidebarHeader()
+              : resolvedLabels.projectHeader}
           </div>
           <div
             className={cx(
@@ -755,6 +770,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                   project={layout.project}
                   collapsed={layout.collapsed}
                   height={layout.height}
+                  labels={resolvedLabels}
                   key={layout.project.id}
                   onToggle={() => toggleProject(layout.project.id)}
                 >
@@ -811,6 +827,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                         summary={summary}
                         timeline={timeline}
                         viewMode={viewMode}
+                        labels={resolvedLabels}
                         renderCollapsedProjectSummary={
                           renderCollapsedProjectSummary
                         }
@@ -841,6 +858,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                           viewMode={viewMode}
                           renderTask={renderTask}
                           renderTaskTooltip={renderTaskTooltip}
+                          labels={resolvedLabels}
                           onPointerStart={handlePointerStart}
                           onSelect={(nextTask) => onTaskSelect?.(nextTask)}
                           onContextMenu={handleContextMenu}
@@ -874,10 +892,10 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
             ) : (
               <>
                 <button type="button" onClick={() => contextActions.select()}>
-                  Select
+                  {resolvedLabels.selectAction}
                 </button>
                 <button type="button" onClick={contextActions.close}>
-                  Close
+                  {resolvedLabels.closeAction}
                 </button>
               </>
             )}

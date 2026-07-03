@@ -132,5 +132,6 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
 
   return {
     handlePointerStart,
+    activeInteraction: interaction,
   };
 }

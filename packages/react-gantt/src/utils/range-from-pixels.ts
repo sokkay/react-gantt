@@ -1,7 +1,15 @@
 import type { PointerInteraction } from "../internal-types";
 import type { GanttViewMode } from "../types";
 import { addViewUnits, ensureMinimumRange, shiftRangeByUnits } from "./dates";
-import { pixelsToUnits, type TimelineModel } from "./timeline";
+import type { TimelineModel } from "./timeline";
+
+const MS_PER_UNIT: Record<GanttViewMode, number> = {
+  day: 86_400_000,
+  week: 604_800_000,
+  month: 2_592_000_000, // 30 días
+  quarter: 7_776_000_000, // 90 días
+  year: 31_536_000_000, // 365 días
+};
 
 export function rangeFromPixels<TTaskMeta>(
   interaction: PointerInteraction<TTaskMeta>,
@@ -10,14 +18,14 @@ export function rangeFromPixels<TTaskMeta>(
   viewMode: GanttViewMode,
   snapTo: GanttViewMode | "none"
 ) {
-  if (snapTo === "none") {
-    const firstCell = timeline.cells[0];
-    const millisecondsPerCell = firstCell
-      ? firstCell.end.getTime() - firstCell.start.getTime()
-      : 86_400_000;
-    const deltaMilliseconds =
-      (deltaPixels / timeline.cellWidth) * millisecondsPerCell;
+  const firstCell = timeline.cells[0];
+  const millisecondsPerCell = firstCell
+    ? firstCell.end.getTime() - firstCell.start.getTime()
+    : MS_PER_UNIT[viewMode];
+  const deltaMilliseconds =
+    (deltaPixels / timeline.cellWidth) * millisecondsPerCell;
 
+  if (snapTo === "none") {
     if (interaction.kind === "move") {
       return {
         start: new Date(interaction.start.getTime() + deltaMilliseconds),
@@ -40,7 +48,7 @@ export function rangeFromPixels<TTaskMeta>(
     );
   }
 
-  const units = pixelsToUnits(deltaPixels, timeline);
+  const units = Math.round(deltaMilliseconds / MS_PER_UNIT[snapTo]);
 
   if (interaction.kind === "move") {
     return shiftRangeByUnits(interaction.start, interaction.end, units, snapTo);

@@ -1,6 +1,6 @@
 {
   "name": "@sokkay/react-gantt",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Controlled React Gantt chart component with timeline editing primitives.",
   "type": "module",
   "license": "MIT",

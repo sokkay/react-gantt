@@ -170,6 +170,9 @@ export default function App() {
   const ganttRef = useGanttChart();
   const [projects, setProjects] = useState(initialProjects);
   const [viewMode, setViewMode] = useState<GanttViewMode>("day");
+  const [snapTo, setSnapTo] = useState<GanttViewMode | "none" | "viewMode">(
+    "viewMode"
+  );
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>("api");
   const [collapsedProjectIds, setCollapsedProjectIds] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(300);
@@ -270,17 +273,47 @@ export default function App() {
             selection, tooltips and custom menus.
           </p>
         </div>
-        <div className="view-switcher" aria-label="View mode">
-          {viewModes.map((mode) => (
-            <button
-              className={mode === viewMode ? "is-active" : undefined}
-              type="button"
-              key={mode}
-              onClick={() => setViewMode(mode)}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            alignItems: "flex-end",
+          }}
+        >
+          <div className="view-switcher" aria-label="View mode">
+            {viewModes.map((mode) => (
+              <button
+                className={mode === viewMode ? "is-active" : undefined}
+                type="button"
+                key={mode}
+                onClick={() => setViewMode(mode)}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span
+              style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
             >
-              {mode}
-            </button>
-          ))}
+              Snap:
+            </span>
+            <div className="view-switcher" aria-label="Snap to">
+              {(["viewMode", "none", "day", "week", "month"] as const).map(
+                (mode) => (
+                  <button
+                    className={mode === snapTo ? "is-active" : undefined}
+                    type="button"
+                    key={mode}
+                    onClick={() => setSnapTo(mode)}
+                  >
+                    {mode}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
         </div>
         <div className="docs-actions">
           <button
@@ -304,6 +337,7 @@ export default function App() {
             ref={ganttRef}
             projects={projects}
             viewMode={viewMode}
+            snapTo={snapTo === "viewMode" ? undefined : snapTo}
             selectedTaskId={selectedTaskId}
             selectionToolbarMode="static"
             collapsedProjectIds={collapsedProjectIds}

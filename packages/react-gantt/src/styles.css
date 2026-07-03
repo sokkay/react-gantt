@@ -251,6 +251,7 @@
     box-shadow 150ms ease,
     transform 150ms ease;
   user-select: none;
+  touch-action: none;
 }
 
 .sokkay-gantt__task:hover,
@@ -345,12 +346,21 @@
 }
 
 .sokkay-gantt__resize {
-  position: relative;
-  z-index: 3;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
   width: 8px;
-  min-width: 8px;
-  height: 100%;
   cursor: ew-resize;
+  touch-action: none;
+}
+
+.sokkay-gantt__resize--start {
+  left: 0;
+}
+
+.sokkay-gantt__resize--end {
+  right: 0;
 }
 
 .sokkay-gantt__resize::after {

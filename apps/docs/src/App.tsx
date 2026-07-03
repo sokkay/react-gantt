@@ -170,7 +170,9 @@ export default function App() {
   const ganttRef = useGanttChart();
   const [projects, setProjects] = useState(initialProjects);
   const [viewMode, setViewMode] = useState<GanttViewMode>("day");
-  const [snapTo, setSnapTo] = useState<GanttViewMode | "none" | "viewMode">("viewMode");
+  const [snapTo, setSnapTo] = useState<GanttViewMode | "none" | "viewMode">(
+    "viewMode"
+  );
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>("api");
   const [collapsedProjectIds, setCollapsedProjectIds] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(300);
@@ -271,7 +273,14 @@ export default function App() {
             selection, tooltips and custom menus.
           </p>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "flex-end" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            alignItems: "flex-end",
+          }}
+        >
           <div className="view-switcher" aria-label="View mode">
             {viewModes.map((mode) => (
               <button
@@ -285,18 +294,24 @@ export default function App() {
             ))}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}>Snap:</span>
+            <span
+              style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
+            >
+              Snap:
+            </span>
             <div className="view-switcher" aria-label="Snap to">
-              {(["viewMode", "none", "day", "week", "month"] as const).map((mode) => (
-                <button
-                  className={mode === snapTo ? "is-active" : undefined}
-                  type="button"
-                  key={mode}
-                  onClick={() => setSnapTo(mode)}
-                >
-                  {mode}
-                </button>
-              ))}
+              {(["viewMode", "none", "day", "week", "month"] as const).map(
+                (mode) => (
+                  <button
+                    className={mode === snapTo ? "is-active" : undefined}
+                    type="button"
+                    key={mode}
+                    onClick={() => setSnapTo(mode)}
+                  >
+                    {mode}
+                  </button>
+                )
+              )}
             </div>
           </div>
         </div>

@@ -17,6 +17,8 @@
   --sg-sidebar-width: 240px;
   --sg-sidebar-min-width: 220px;
   --sg-header-height: 44px;
+  --sg-animation-speed: 0.3s;
+  --sg-transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: auto;
   max-height: 680px;
@@ -142,6 +144,7 @@
 .sokkay-gantt__timeline-header {
   display: flex;
   min-height: var(--sg-header-height);
+  transition: width var(--sg-animation-speed) var(--sg-transition-curve);
 }
 
 .sokkay-gantt__header-cell {
@@ -153,11 +156,13 @@
   font-size: 12px;
   font-weight: 650;
   white-space: nowrap;
+  transition: width var(--sg-animation-speed) var(--sg-transition-curve);
 }
 
 .sokkay-gantt__timeline {
   display: flex;
   flex-direction: column;
+  transition: width var(--sg-animation-speed) var(--sg-transition-curve);
 }
 
 .sokkay-gantt__sidebar {
@@ -178,6 +183,7 @@
 .sokkay-gantt__project-cell,
 .sokkay-gantt__row {
   min-height: var(--sg-row-height);
+  transition: height var(--sg-animation-speed) var(--sg-transition-curve);
 }
 
 .sokkay-gantt__project-cell {
@@ -230,6 +236,7 @@
 .sokkay-gantt__grid-cell {
   min-height: 100%;
   border-right: 1px solid var(--sg-grid);
+  transition: width var(--sg-animation-speed) var(--sg-transition-curve);
 }
 
 .sokkay-gantt__task {
@@ -249,9 +256,19 @@
   transition:
     border-color 150ms ease,
     box-shadow 150ms ease,
-    transform 150ms ease;
+    transform 150ms ease,
+    left var(--sg-animation-speed) var(--sg-transition-curve),
+    width var(--sg-animation-speed) var(--sg-transition-curve),
+    top var(--sg-animation-speed) var(--sg-transition-curve);
   user-select: none;
   touch-action: none;
+}
+
+.sokkay-gantt__task.is-interacting {
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
 }
 
 .sokkay-gantt__task:hover,
@@ -293,6 +310,9 @@
   padding: 0 12px;
   pointer-events: none;
   user-select: none;
+  transition:
+    left var(--sg-animation-speed) var(--sg-transition-curve),
+    width var(--sg-animation-speed) var(--sg-transition-curve);
 }
 
 .sokkay-gantt__collapsed-summary strong,

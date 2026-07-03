@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PointerInteraction } from "../internal-types";
-import { buildTimeline } from "../utils/timeline";
 import { rangeFromPixels } from "../utils/range-from-pixels";
+import { buildTimeline } from "../utils/timeline";
 
 const mockProjects = [
   {

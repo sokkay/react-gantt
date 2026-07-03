@@ -75,6 +75,7 @@ export function TaskBar<TTaskMeta>({
   onSelect,
   onContextMenu,
   className,
+  isInteracting,
 }: {
   task: NormalizedGanttTask<TTaskMeta>;
   index: number;
@@ -96,6 +97,7 @@ export function TaskBar<TTaskMeta>({
     task: NormalizedGanttTask<TTaskMeta>
   ) => void;
   className?: string;
+  isInteracting?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const { setNodeRef: setDropNodeRef, isOver } = useDroppable({
@@ -129,6 +131,7 @@ export function TaskBar<TTaskMeta>({
           "sokkay-gantt__task",
           selected && "is-selected",
           isOver && "is-over",
+          isInteracting && "is-interacting",
           className
         )}
         data-testid={`task-${task.id}`}

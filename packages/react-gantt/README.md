@@ -258,7 +258,9 @@ Format:
 ```bash
 pnpm format
 ```
+
 pnpm format:check
+
 ```
 
 ## Package Build
@@ -274,3 +276,4 @@ Consumers do not need to configure Tailwind to use the default styles.
 ## License
 
 MIT
+```

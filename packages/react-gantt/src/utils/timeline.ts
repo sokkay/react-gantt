@@ -1,5 +1,9 @@
 import { format } from "date-fns";
-import type { GanttCellWidths, GanttViewMode, NormalizedGanttProject } from "../types";
+import type {
+  GanttCellWidths,
+  GanttViewMode,
+  NormalizedGanttProject,
+} from "../types";
 import { addViewUnits, diffViewUnits, snapDate } from "./dates";
 
 const CELL_WIDTH: Record<GanttViewMode, number> = {

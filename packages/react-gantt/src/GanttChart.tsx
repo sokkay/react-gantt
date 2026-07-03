@@ -137,7 +137,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     setScrollState({ top: root.scrollTop, height: root.clientHeight });
   }, []);
 
-  const { handlePointerStart } = useTaskPointerInteraction({
+  const { handlePointerStart, activeInteraction } = useTaskPointerInteraction({
     rootRef,
     timeline,
     viewMode,
@@ -386,6 +386,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                               (DEFAULT_TASK_HEIGHT + DEFAULT_LANE_GAP)
                           }
                           selected={selectedTaskId === task.id}
+                          isInteracting={activeInteraction?.task.id === task.id}
                           timeline={timeline}
                           viewMode={viewMode}
                           renderTask={renderTask}

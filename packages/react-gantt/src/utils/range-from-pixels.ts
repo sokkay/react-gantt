@@ -6,9 +6,9 @@ import type { TimelineModel } from "./timeline";
 const MS_PER_UNIT: Record<GanttViewMode, number> = {
   day: 86_400_000,
   week: 604_800_000,
-  month: 2_592_000_000,     // 30 días
-  quarter: 7_776_000_000,   // 90 días
-  year: 31_536_000_000,     // 365 días
+  month: 2_592_000_000, // 30 días
+  quarter: 7_776_000_000, // 90 días
+  year: 31_536_000_000, // 365 días
 };
 
 export function rangeFromPixels<TTaskMeta>(

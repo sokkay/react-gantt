@@ -24,7 +24,13 @@ import type {
 } from "../types";
 
 export function normalizeDate(input: GanttDateInput): Date {
-  const value = input instanceof Date ? input : new Date(input);
+  let value: Date;
+  if (typeof input === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    const [year, month, day] = input.split("-").map(Number);
+    value = new Date(year, month - 1, day);
+  } else {
+    value = input instanceof Date ? input : new Date(input);
+  }
 
   if (!isValid(value)) {
     throw new Error(`Invalid Gantt date: ${String(input)}`);

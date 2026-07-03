@@ -289,6 +289,10 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   projects: Array<GanttProject<TProjectMeta, TTaskMeta>>;
   /** The active timeline scale (e.g. day-level zoom or year-level zoom). */
   viewMode: GanttViewMode;
+  /** The minimum allowed date for the timeline and task actions. */
+  minDate?: GanttDateInput;
+  /** The maximum allowed date for the timeline and task actions. */
+  maxDate?: GanttDateInput;
   /** The ID of the currently selected task. Pass null or undefined for no selection. */
   selectedTaskId?: string | null;
   /** Determines how and when the task selection details toolbar is displayed. */

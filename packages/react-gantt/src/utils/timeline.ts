@@ -40,7 +40,9 @@ export interface TimelineModel {
 export function buildTimeline(
   projects: Array<NormalizedGanttProject>,
   viewMode: GanttViewMode,
-  customCellWidths?: GanttCellWidths
+  customCellWidths?: GanttCellWidths,
+  minDate?: Date,
+  maxDate?: Date
 ): TimelineModel {
   const cellWidth = customCellWidths?.[viewMode] ?? CELL_WIDTH[viewMode];
   const tasks = projects.flatMap((project) => project.tasks);
@@ -52,16 +54,25 @@ export function buildTimeline(
     (acc, task) => (!acc || task.end > acc ? task.end : acc),
     null
   );
-  const start = addViewUnits(
-    snapDate(minStart ?? new Date(), viewMode),
-    -1,
-    viewMode
-  );
-  const end = addViewUnits(
-    snapDate(maxEnd ?? new Date(), viewMode),
-    2,
-    viewMode
-  );
+  const start = minDate
+    ? snapDate(minDate, viewMode)
+    : addViewUnits(
+        snapDate(minStart ?? new Date(), viewMode),
+        -1,
+        viewMode
+      );
+  let end = maxDate
+    ? addViewUnits(snapDate(maxDate, viewMode), 1, viewMode)
+    : addViewUnits(
+        snapDate(maxEnd ?? new Date(), viewMode),
+        2,
+        viewMode
+      );
+
+  if (start >= end) {
+    end = addViewUnits(start, 1, viewMode);
+  }
+
   const cellCount = Math.max(diffViewUnits(start, end, viewMode), 1);
   const cells = Array.from({ length: cellCount }, (_, index) => {
     const cellStart = addViewUnits(start, index, viewMode);

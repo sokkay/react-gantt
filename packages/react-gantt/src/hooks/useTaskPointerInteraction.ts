@@ -17,6 +17,8 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
   snapTo,
   onTaskMove,
   onTaskResize,
+  minDate,
+  maxDate,
 }: Pick<
   GanttChartProps<TProjectMeta, TTaskMeta>,
   "snapTo" | "onTaskMove" | "onTaskResize"
@@ -24,6 +26,8 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
   rootRef: React.RefObject<HTMLDivElement | null>;
   timeline: TimelineModel;
   viewMode: GanttViewMode;
+  minDate?: Date;
+  maxDate?: Date;
 }) {
   const [interaction, setInteraction] =
     useState<PointerInteraction<TTaskMeta> | null>(null);
@@ -65,7 +69,9 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
         event.clientX - interaction.originX,
         timeline,
         viewMode,
-        snapTo ?? viewMode
+        snapTo ?? viewMode,
+        minDate,
+        maxDate
       );
 
       if (interaction.kind === "move") {
@@ -112,6 +118,8 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
     snapTo,
     timeline,
     viewMode,
+    minDate,
+    maxDate,
   ]);
 
   const handlePointerStart = (

@@ -25,6 +25,8 @@ export function useGanttModel<TProjectMeta, TTaskMeta>({
   scrollTop,
   scrollHeight,
   customCellWidths,
+  minDate,
+  maxDate,
 }: Pick<
   GanttChartProps<TProjectMeta, TTaskMeta>,
   "projects" | "viewMode" | "labels" | "selectedTaskId" | "customCellWidths"
@@ -34,6 +36,8 @@ export function useGanttModel<TProjectMeta, TTaskMeta>({
   overscan: number;
   scrollTop: number;
   scrollHeight: number;
+  minDate?: Date;
+  maxDate?: Date;
 }) {
   const resolvedLabels = useMemo(
     () =>
@@ -48,8 +52,8 @@ export function useGanttModel<TProjectMeta, TTaskMeta>({
     [projects]
   );
   const timeline = useMemo(
-    () => buildTimeline(normalizedProjects, viewMode, customCellWidths),
-    [normalizedProjects, viewMode, customCellWidths]
+    () => buildTimeline(normalizedProjects, viewMode, customCellWidths, minDate, maxDate),
+    [normalizedProjects, viewMode, customCellWidths, minDate, maxDate]
   );
   const layouts = useMemo(
     () =>

@@ -54,6 +54,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     theme,
     labels,
     customCellWidths,
+    minDate,
+    maxDate,
     onTaskMove,
     onTaskResize,
     onTaskTransfer,
@@ -78,6 +80,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [contextMenu, setContextMenu] =
     useState<ContextMenuState<TTaskMeta> | null>(null);
+  const normalizedMinDate = minDate ? normalizeDate(minDate) : undefined;
+  const normalizedMaxDate = maxDate ? normalizeDate(maxDate) : undefined;
   const [scrollState, setScrollState] = useState({ top: 0, height: 0 });
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
   const { effectiveCollapsedIds, setProjectCollapsed, toggleProject } =
@@ -114,6 +118,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     scrollTop: scrollState.top,
     scrollHeight: scrollState.height,
     customCellWidths,
+    minDate: normalizedMinDate,
+    maxDate: normalizedMaxDate,
   });
   const showSelectionToolbar =
     selectionToolbarMode === "static" ||
@@ -144,6 +150,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     snapTo,
     onTaskMove,
     onTaskResize,
+    minDate: normalizedMinDate,
+    maxDate: normalizedMaxDate,
   });
   const handleDragEnd = useGanttDragEnd({
     normalizedProjects,

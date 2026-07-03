@@ -52,5 +52,7 @@ export function createThemeStyle({
     "--sg-project-bar-text": theme?.projectBarText,
     "--sg-project-bar-border": theme?.projectBarBorder,
     "--sg-project-bar-progress": theme?.projectBarProgress,
+    "--sg-row-hover-bg": theme?.rowHoverBg,
+    "--sg-row-selected-bg": theme?.rowSelectedBg,
   } as React.CSSProperties;
 }

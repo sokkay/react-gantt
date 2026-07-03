@@ -18,6 +18,8 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   height,
   labels,
   onToggle,
+  onMouseEnter,
+  onMouseLeave,
 }: {
   project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
   children: React.ReactNode;
@@ -29,6 +31,8 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
     "reorderProject" | "collapseProject" | "expandProject"
   >;
   onToggle: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }) {
   const {
     attributes,
@@ -55,6 +59,8 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
         transform: CSS.Transform.toString(transform),
         transition,
       }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <button
         className="sokkay-gantt__project-grip"
@@ -89,6 +95,8 @@ export function SortableTaskCell<TTaskMeta>({
   className,
   height,
   index,
+  onMouseEnter,
+  onMouseLeave,
 }: {
   task: NormalizedGanttTask<TTaskMeta>;
   project: NormalizedGanttProject<unknown, TTaskMeta>;
@@ -96,6 +104,8 @@ export function SortableTaskCell<TTaskMeta>({
   className?: string;
   height: number;
   index: number;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }) {
   const {
     attributes,
@@ -122,6 +132,8 @@ export function SortableTaskCell<TTaskMeta>({
         transform: CSS.Transform.toString(transform),
         transition,
       }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <button
         className="sokkay-gantt__task-grip"
@@ -141,11 +153,15 @@ export function ProjectDropRow({
   children,
   className,
   height,
+  onMouseEnter,
+  onMouseLeave,
 }: {
   projectId: string;
   children: React.ReactNode;
   className?: string;
   height: number;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `project-row:${projectId}`,
@@ -157,6 +173,8 @@ export function ProjectDropRow({
       ref={setNodeRef}
       className={cx(className, isOver && "is-over")}
       style={{ height }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {children}
     </div>
@@ -170,6 +188,8 @@ export function TaskDropRow({
   children,
   className,
   height,
+  onMouseEnter,
+  onMouseLeave,
 }: {
   taskId: string;
   projectId: string;
@@ -177,6 +197,8 @@ export function TaskDropRow({
   children: React.ReactNode;
   className?: string;
   height: number;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `task-row:${taskId}`,
@@ -188,6 +210,8 @@ export function TaskDropRow({
       ref={setNodeRef}
       className={cx(className, isOver && "is-over")}
       style={{ height }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {children}
     </div>

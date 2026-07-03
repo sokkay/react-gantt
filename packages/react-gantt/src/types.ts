@@ -295,6 +295,10 @@ export interface GanttTheme {
   projectBarBorder?: string;
   /** Custom progress fill color for the project summary bar. */
   projectBarProgress?: string;
+  /** Custom background color for a row when hovered. */
+  rowHoverBg?: string;
+  /** Custom background color for a row when selected. */
+  rowSelectedBg?: string;
 }
 
 /**

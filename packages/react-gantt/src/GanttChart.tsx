@@ -90,6 +90,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
   const normalizedMinDate = minDate ? normalizeDate(minDate) : undefined;
   const normalizedMaxDate = maxDate ? normalizeDate(maxDate) : undefined;
   const [scrollState, setScrollState] = useState({ top: 0, height: 0 });
+  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
   const { effectiveCollapsedIds, setProjectCollapsed, toggleProject } =
     useProjectCollapse({
@@ -327,13 +328,18 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                 if (row.type === "project") {
                   return (
                     <SortableProjectCell
-                      className={classNames?.projectCell}
+                      className={cx(
+                        classNames?.projectCell,
+                        hoveredRowId === row.id && "is-hovered"
+                      )}
                       project={row.project}
                       collapsed={row.collapsed}
                       height={row.height}
                       labels={resolvedLabels}
                       key={row.id}
                       onToggle={() => toggleProject(row.project.id)}
+                      onMouseEnter={() => setHoveredRowId(row.id)}
+                      onMouseLeave={() => setHoveredRowId(null)}
                     >
                       {renderProjectCell
                         ? renderProjectCell(row.project, {
@@ -346,12 +352,18 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                 } else {
                   return (
                     <SortableTaskCell
-                      className={classNames?.taskCell}
+                      className={cx(
+                        classNames?.taskCell,
+                        hoveredRowId === row.id && "is-hovered",
+                        selectedTaskId === row.task.id && "is-selected"
+                      )}
                       task={row.task}
                       project={row.project}
                       height={row.height}
                       key={row.id}
                       index={row.index}
+                      onMouseEnter={() => setHoveredRowId(row.id)}
+                      onMouseLeave={() => setHoveredRowId(null)}
                     >
                       {renderSidebarTaskCell
                         ? renderSidebarTaskCell(row.task)
@@ -385,10 +397,13 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       projectId={row.project.id}
                       className={cx(
                         "sokkay-gantt__row sokkay-gantt__row--project",
+                        hoveredRowId === row.id && "is-hovered",
                         classNames?.projectRow
                       )}
                       height={row.height}
                       key={row.id}
+                      onMouseEnter={() => setHoveredRowId(row.id)}
+                      onMouseLeave={() => setHoveredRowId(null)}
                     >
                       {timeline.cells.map((cell) => (
                         <div
@@ -463,10 +478,14 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       index={row.index}
                       className={cx(
                         "sokkay-gantt__row sokkay-gantt__row--task",
+                        hoveredRowId === row.id && "is-hovered",
+                        selectedTaskId === row.task.id && "is-selected",
                         classNames?.taskRow
                       )}
                       height={row.height}
                       key={row.id}
+                      onMouseEnter={() => setHoveredRowId(row.id)}
+                      onMouseLeave={() => setHoveredRowId(null)}
                     >
                       {timeline.cells.map((cell) => (
                         <div

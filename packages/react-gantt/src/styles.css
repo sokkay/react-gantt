@@ -246,7 +246,23 @@
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
   color: var(--sg-task-text);
   cursor: grab;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
   user-select: none;
+}
+
+.sokkay-gantt__task:hover,
+.sokkay-gantt__task:focus-within {
+  z-index: 4;
+  border-color: color-mix(
+    in srgb,
+    var(--sg-task-color, var(--sg-task)) 62%,
+    #ffffff
+  );
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.2);
+  transform: translateY(-2px);
 }
 
 .sokkay-gantt__task.is-selected {
@@ -335,6 +351,38 @@
   min-width: 8px;
   height: 100%;
   cursor: ew-resize;
+}
+
+.sokkay-gantt__resize::after {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.1);
+  content: "";
+  opacity: 0;
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+.sokkay-gantt__resize--start::after {
+  left: 2px;
+  transform: translateX(-3px);
+}
+
+.sokkay-gantt__resize--end::after {
+  right: 2px;
+  transform: translateX(3px);
+}
+
+.sokkay-gantt__task:hover .sokkay-gantt__resize::after,
+.sokkay-gantt__task:focus-within .sokkay-gantt__resize::after,
+.sokkay-gantt__resize:active::after {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .sokkay-gantt__tooltip {

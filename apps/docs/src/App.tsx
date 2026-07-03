@@ -177,6 +177,16 @@ export default function App() {
   const [collapsedProjectIds, setCollapsedProjectIds] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(300);
   const [eventLog, setEventLog] = useState<string[]>([]);
+  const [minDate, setMinDate] = useState<string>("2026-07-01");
+  const [maxDate, setMaxDate] = useState<string>("2026-07-31");
+
+  const isValidDateString = (str: string) => {
+    const d = new Date(str);
+    return d instanceof Date && !isNaN(d.getTime()) && str.length >= 10;
+  };
+
+  const resolvedMinDate = minDate && isValidDateString(minDate) ? minDate : undefined;
+  const resolvedMaxDate = maxDate && isValidDateString(maxDate) ? maxDate : undefined;
 
   const selectedTask = useMemo(
     () =>
@@ -337,6 +347,8 @@ export default function App() {
             ref={ganttRef}
             projects={projects}
             viewMode={viewMode}
+            minDate={resolvedMinDate}
+            maxDate={resolvedMaxDate}
             snapTo={snapTo === "viewMode" ? undefined : snapTo}
             selectedTaskId={selectedTaskId}
             selectionToolbarMode="static"
@@ -459,6 +471,27 @@ export default function App() {
             <dt>Sidebar</dt>
             <dd>{Math.round(sidebarWidth)}px</dd>
           </dl>
+          <h2>Timeline bounds</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "20px" }}>
+            <label style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", color: "#64748b", fontWeight: 600 }}>
+              Min Date:
+              <input
+                type="date"
+                value={minDate}
+                onChange={(e) => setMinDate(e.target.value)}
+                style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "13px", fontFamily: "inherit" }}
+              />
+            </label>
+            <label style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", color: "#64748b", fontWeight: 600 }}>
+              Max Date:
+              <input
+                type="date"
+                value={maxDate}
+                onChange={(e) => setMaxDate(e.target.value)}
+                style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "13px", fontFamily: "inherit" }}
+              />
+            </label>
+          </div>
           <h2>Events</h2>
           <ol>
             {eventLog.map((item, index) => (

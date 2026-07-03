@@ -521,7 +521,10 @@
 .sokkay-gantt__project-cell.is-hovered,
 .sokkay-gantt__task-cell.is-hovered,
 .sokkay-gantt__row.is-hovered {
-  background-color: var(--sg-row-hover-bg, rgba(15, 23, 42, 0.025)) !important;
+  background-color: var(
+    --sg-row-hover-bg,
+    color-mix(in srgb, var(--sg-text) 2.5%, var(--sg-surface))
+  ) !important;
 }
 
 .sokkay-gantt__project-cell.is-selected,
@@ -529,6 +532,6 @@
 .sokkay-gantt__row.is-selected {
   background-color: var(
     --sg-row-selected-bg,
-    rgba(37, 99, 235, 0.07)
+    color-mix(in srgb, var(--sg-task) 7%, var(--sg-surface))
   ) !important;
 }

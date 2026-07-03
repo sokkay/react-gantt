@@ -229,4 +229,28 @@ describe("GanttChart", () => {
 
     expect(onSidebarWidthChange).toHaveBeenLastCalledWith(360);
   });
+
+  it("preserves last controlled sidebar width when transitioning to uncontrolled mode", () => {
+    const { rerender, container } = render(
+      <GanttChart projects={projects} viewMode="day" sidebarWidth={300} />
+    );
+
+    let root = container.querySelector(".sokkay-gantt") as HTMLElement;
+    expect(root.style.getPropertyValue("--sg-sidebar-width")).toBe("300px");
+
+    // Rerender with a new controlled width
+    rerender(
+      <GanttChart projects={projects} viewMode="day" sidebarWidth={350} />
+    );
+    root = container.querySelector(".sokkay-gantt") as HTMLElement;
+    expect(root.style.getPropertyValue("--sg-sidebar-width")).toBe("350px");
+
+    // Transition to uncontrolled (sidebarWidth becomes undefined)
+    rerender(
+      <GanttChart projects={projects} viewMode="day" sidebarWidth={undefined} />
+    );
+    root = container.querySelector(".sokkay-gantt") as HTMLElement;
+    // It should keep 350px (the last controlled value) instead of jumping back to 240px fallback
+    expect(root.style.getPropertyValue("--sg-sidebar-width")).toBe("350px");
+  });
 });

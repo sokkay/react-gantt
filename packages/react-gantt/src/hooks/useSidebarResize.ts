@@ -20,8 +20,17 @@ export function useSidebarResize<TProjectMeta, TTaskMeta>({
     minSidebarWidth ?? theme?.minSidebarWidth,
     220
   );
+  const [prevSidebarWidth, setPrevSidebarWidth] = useState(sidebarWidth);
   const [internalSidebarWidth, setInternalSidebarWidth] =
     useState(sidebarWidthFallback);
+
+  if (sidebarWidth !== prevSidebarWidth) {
+    setPrevSidebarWidth(sidebarWidth);
+    if (sidebarWidth !== undefined) {
+      setInternalSidebarWidth(toPixelNumber(sidebarWidth, 240));
+    }
+  }
+
   const effectiveSidebarWidth = Math.max(
     toPixelNumber(sidebarWidth, internalSidebarWidth),
     sidebarMinWidth

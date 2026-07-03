@@ -55,7 +55,12 @@ export function rangeFromPixels<TTaskMeta>(
     const units = Math.round(deltaMilliseconds / MS_PER_UNIT[snapTo]);
 
     if (interaction.kind === "move") {
-      const res = shiftRangeByUnits(interaction.start, interaction.end, units, snapTo);
+      const res = shiftRangeByUnits(
+        interaction.start,
+        interaction.end,
+        units,
+        snapTo
+      );
       start = res.start;
       end = res.end;
     } else if (interaction.kind === "resize-start") {
@@ -76,8 +81,6 @@ export function rangeFromPixels<TTaskMeta>(
       end = res.end;
     }
   }
-
-
 
   if (interaction.kind === "move") {
     const duration = end.getTime() - start.getTime();

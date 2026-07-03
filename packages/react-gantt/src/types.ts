@@ -55,6 +55,8 @@ export interface GanttProject<TMeta = unknown, TTaskMeta = unknown> {
   name: string;
   /** The list of tasks associated with this project. */
   tasks: Array<GanttTask<TTaskMeta>>;
+  /** Optional progress percentage for the project summary. */
+  progress?: number;
   /** Custom metadata for application-specific payload. */
   meta?: TMeta;
 }
@@ -98,6 +100,8 @@ export interface CollapsedProjectSummary<
   end: Date;
   /** The total number of tasks in this project. */
   taskCount: number;
+  /** Calculated or user-provided progress percentage. */
+  progress?: number;
 }
 
 /**
@@ -235,6 +239,10 @@ export interface GanttClassNames {
   projectRow?: string;
   /** Custom class name for individual cells in the sidebar project rows. */
   projectCell?: string;
+  /** Custom class name for a task row wrapper in the sidebar/timeline (only in tree mode). */
+  taskRow?: string;
+  /** Custom class name for individual cells in the sidebar task rows. */
+  taskCell?: string;
   /** Custom class name for the main timeline scrolling grid area. */
   timeline?: string;
   /** Custom class name for individual task bars. */
@@ -279,6 +287,14 @@ export interface GanttTheme {
   taskHeight?: string;
   /** Vertical gap between multiple task lanes in the same row. */
   laneGap?: string;
+  /** Custom background color for the project summary bar. */
+  projectBar?: string;
+  /** Custom text color inside the project summary bar. */
+  projectBarText?: string;
+  /** Custom border color for the project summary bar. */
+  projectBarBorder?: string;
+  /** Custom progress fill color for the project summary bar. */
+  projectBarProgress?: string;
 }
 
 /**
@@ -317,12 +333,16 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   onSidebarWidthChange?: (width: number) => void;
   /** CSS class applied to the root element. */
   className?: string;
-  /** CSS class name overrides for internal Gantt elements. */
+  /** Custom class name overrides for internal Gantt elements. */
   classNames?: GanttClassNames;
   /** Custom theme token overrides. */
   theme?: GanttTheme;
   /** Custom localized labels and accessibility text overrides. */
   labels?: Partial<GanttLabels<TProjectMeta, TTaskMeta>>;
+  /** Layout mode of the Gantt chart: 'compact' renders tasks packed in lanes, 'tree' renders tasks on their own rows under projects. */
+  layoutMode?: "compact" | "tree";
+  /** Custom render function for rendering task cells in the sidebar (only in tree mode). */
+  renderSidebarTaskCell?: (task: NormalizedGanttTask<TTaskMeta>) => ReactNode;
   /** Event callback triggered when a task is moved (dragged horizontally). */
   onTaskMove?: (payload: TaskMovePayload) => void;
   /** Event callback triggered when a task is resized (start or end edge dragged). */
@@ -408,3 +428,25 @@ export interface GanttChartHandle {
   /** Toggles the collapsed state of a specific project row. */
   toggleProject: (projectId: string) => void;
 }
+
+export interface ProjectRowModel<TProjectMeta = unknown, TTaskMeta = unknown> {
+  type: "project";
+  id: string;
+  project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
+  height: number;
+  collapsed: boolean;
+  lanes: Array<{ index: number; tasks: Array<NormalizedGanttTask<TTaskMeta>> }>;
+}
+
+export interface TaskRowModel<TProjectMeta = unknown, TTaskMeta = unknown> {
+  type: "task";
+  id: string;
+  task: NormalizedGanttTask<TTaskMeta>;
+  project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
+  height: number;
+  index: number;
+}
+
+export type GanttRowModel<TProjectMeta = unknown, TTaskMeta = unknown> =
+  | ProjectRowModel<TProjectMeta, TTaskMeta>
+  | TaskRowModel<TProjectMeta, TTaskMeta>;

@@ -33,24 +33,37 @@ export function CollapsedProjectSummaryBar<TProjectMeta, TTaskMeta>({
   );
   const width = Math.max(range.width, 36);
 
+  const progress =
+    summary.progress !== undefined
+      ? Math.max(0, Math.min(summary.progress, 100))
+      : undefined;
+
   return (
     <div
       className={cx("sokkay-gantt__collapsed-summary", className)}
       data-testid={`project-summary-${summary.project.id}`}
       style={{ left: range.left, width }}
     >
-      {renderCollapsedProjectSummary ? (
-        renderCollapsedProjectSummary(summary)
-      ) : (
-        <>
-          <strong className="sokkay-gantt__collapsed-summary-name">
-            {summary.project.name}
-          </strong>
-          <span className="sokkay-gantt__collapsed-summary-meta">
-            {labels.taskCount(summary.taskCount)}
-          </span>
-        </>
+      {progress !== undefined && (
+        <div
+          className="sokkay-gantt__collapsed-summary-progress"
+          style={{ width: `${progress}%` }}
+        />
       )}
+      <div className="sokkay-gantt__collapsed-summary-content">
+        {renderCollapsedProjectSummary ? (
+          renderCollapsedProjectSummary(summary)
+        ) : (
+          <>
+            <strong className="sokkay-gantt__collapsed-summary-name">
+              {summary.project.name}
+            </strong>
+            <span className="sokkay-gantt__collapsed-summary-meta">
+              {labels.taskCount(summary.taskCount)}
+            </span>
+          </>
+        )}
+      </div>
     </div>
   );
 }

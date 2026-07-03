@@ -56,18 +56,10 @@ export function buildTimeline(
   );
   const start = minDate
     ? snapDate(minDate, viewMode)
-    : addViewUnits(
-        snapDate(minStart ?? new Date(), viewMode),
-        -1,
-        viewMode
-      );
+    : addViewUnits(snapDate(minStart ?? new Date(), viewMode), -1, viewMode);
   let end = maxDate
     ? addViewUnits(snapDate(maxDate, viewMode), 1, viewMode)
-    : addViewUnits(
-        snapDate(maxEnd ?? new Date(), viewMode),
-        2,
-        viewMode
-      );
+    : addViewUnits(snapDate(maxEnd ?? new Date(), viewMode), 2, viewMode);
 
   if (start >= end) {
     end = addViewUnits(start, 1, viewMode);

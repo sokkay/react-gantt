@@ -14,7 +14,12 @@ import {
 } from "react";
 import { CollapsedProjectSummaryBar } from "./components/CollapsedProjectSummaryBar";
 import { ContextMenu, type ContextMenuState } from "./components/ContextMenu";
-import { ProjectDropRow, SortableProjectCell } from "./components/ProjectRows";
+import {
+  ProjectDropRow,
+  SortableProjectCell,
+  SortableTaskCell,
+  TaskDropRow,
+} from "./components/ProjectRows";
 import { SelectionToolbar } from "./components/SelectionToolbar";
 import { TaskBar } from "./components/TaskBar";
 import { DEFAULT_LANE_GAP, DEFAULT_TASK_HEIGHT } from "./constants";
@@ -56,6 +61,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     customCellWidths,
     minDate,
     maxDate,
+    layoutMode = "compact",
+    renderSidebarTaskCell,
     onTaskMove,
     onTaskResize,
     onTaskTransfer,
@@ -101,10 +108,10 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     resolvedLabels,
     normalizedProjects,
     timeline,
-    layouts,
+    flatRows,
     rowOffsets,
     selectedTask,
-    visibleLayouts,
+    visibleRows,
     topSpacer,
     bottomSpacer,
   } = useGanttModel({
@@ -120,6 +127,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     customCellWidths,
     minDate: normalizedMinDate,
     maxDate: normalizedMaxDate,
+    layoutMode,
   });
   const showSelectionToolbar =
     selectionToolbarMode === "static" ||
@@ -176,16 +184,23 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
         );
       },
       scrollToTask: (taskId) => {
-        const projectIndex = layouts.findIndex((layout) =>
-          layout.project.tasks.some((task) => task.id === taskId)
-        );
         const root = rootRef.current;
 
-        if (!root || projectIndex < 0) {
+        if (!root) {
           return;
         }
 
-        root.scrollTop = rowOffsets[projectIndex] ?? 0;
+        const rowIndex = flatRows.findIndex((row) =>
+          row.type === "task"
+            ? row.task.id === taskId
+            : row.project.tasks.some((t) => t.id === taskId)
+        );
+
+        if (rowIndex < 0) {
+          return;
+        }
+
+        root.scrollTop = rowOffsets[rowIndex] ?? 0;
       },
       selectTask: (taskId) => {
         const task = taskId
@@ -200,7 +215,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
       toggleProject,
     }),
     [
-      layouts,
+      flatRows,
       normalizedProjects,
       onTaskSelect,
       rowOffsets,
@@ -287,7 +302,11 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
         </div>
 
         <SortableContext
-          items={normalizedProjects.map((project) => `project:${project.id}`)}
+          items={visibleRows.map((row) =>
+            row.type === "project"
+              ? `project:${row.project.id}`
+              : `task-sort:${row.task.id}`
+          )}
           strategy={verticalListSortingStrategy}
         >
           <div className="sokkay-gantt__body">
@@ -304,24 +323,43 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                   style={{ height: topSpacer }}
                 />
               )}
-              {visibleLayouts.map((layout) => (
-                <SortableProjectCell
-                  className={classNames?.projectCell}
-                  project={layout.project}
-                  collapsed={layout.collapsed}
-                  height={layout.height}
-                  labels={resolvedLabels}
-                  key={layout.project.id}
-                  onToggle={() => toggleProject(layout.project.id)}
-                >
-                  {renderProjectCell
-                    ? renderProjectCell(layout.project, {
-                        collapsed: layout.collapsed,
-                        taskCount: layout.project.tasks.length,
-                      })
-                    : layout.project.name}
-                </SortableProjectCell>
-              ))}
+              {visibleRows.map((row) => {
+                if (row.type === "project") {
+                  return (
+                    <SortableProjectCell
+                      className={classNames?.projectCell}
+                      project={row.project}
+                      collapsed={row.collapsed}
+                      height={row.height}
+                      labels={resolvedLabels}
+                      key={row.id}
+                      onToggle={() => toggleProject(row.project.id)}
+                    >
+                      {renderProjectCell
+                        ? renderProjectCell(row.project, {
+                            collapsed: row.collapsed,
+                            taskCount: row.project.tasks.length,
+                          })
+                        : row.project.name}
+                    </SortableProjectCell>
+                  );
+                } else {
+                  return (
+                    <SortableTaskCell
+                      className={classNames?.taskCell}
+                      task={row.task}
+                      project={row.project}
+                      height={row.height}
+                      key={row.id}
+                      index={row.index}
+                    >
+                      {renderSidebarTaskCell
+                        ? renderSidebarTaskCell(row.task)
+                        : row.task.name}
+                    </SortableTaskCell>
+                  );
+                }
+              })}
               {bottomSpacer > 0 && (
                 <div
                   className="sokkay-gantt__virtual-spacer"
@@ -340,74 +378,130 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                   style={{ height: topSpacer }}
                 />
               )}
-              {visibleLayouts.map((layout) => (
-                <ProjectDropRow
-                  projectId={layout.project.id}
-                  className={cx("sokkay-gantt__row", classNames?.projectRow)}
-                  height={layout.height}
-                  key={layout.project.id}
-                >
-                  {timeline.cells.map((cell) => (
-                    <div
-                      className="sokkay-gantt__grid-cell"
-                      style={{ width: timeline.cellWidth }}
-                      key={cell.id}
+              {visibleRows.map((row) => {
+                if (row.type === "project") {
+                  return (
+                    <ProjectDropRow
+                      projectId={row.project.id}
+                      className={cx(
+                        "sokkay-gantt__row sokkay-gantt__row--project",
+                        classNames?.projectRow
+                      )}
+                      height={row.height}
+                      key={row.id}
                     >
-                      {renderTimelineCell ? renderTimelineCell(cell) : null}
-                    </div>
-                  ))}
-                  {(() => {
-                    const summary = layout.collapsed
-                      ? getCollapsedProjectSummary(layout.project)
-                      : null;
+                      {timeline.cells.map((cell) => (
+                        <div
+                          className="sokkay-gantt__grid-cell"
+                          style={{ width: timeline.cellWidth }}
+                          key={cell.id}
+                        >
+                          {renderTimelineCell ? renderTimelineCell(cell) : null}
+                        </div>
+                      ))}
+                      {(() => {
+                        const summary =
+                          row.collapsed || layoutMode === "tree"
+                            ? getCollapsedProjectSummary(row.project)
+                            : null;
 
-                    return summary ? (
-                      <CollapsedProjectSummaryBar
-                        className={classNames?.collapsedSummary}
-                        summary={summary}
+                        return summary ? (
+                          <CollapsedProjectSummaryBar
+                            className={classNames?.collapsedSummary}
+                            summary={summary}
+                            timeline={timeline}
+                            viewMode={viewMode}
+                            labels={resolvedLabels}
+                            renderCollapsedProjectSummary={
+                              renderCollapsedProjectSummary
+                            }
+                          />
+                        ) : null;
+                      })()}
+                      {layoutMode === "compact" &&
+                        !row.collapsed &&
+                        row.lanes.flatMap((lane) =>
+                          lane.tasks.map((task) => (
+                            <TaskBar
+                              className={cx(
+                                classNames?.task,
+                                selectedTaskId === task.id &&
+                                  classNames?.selectedTask
+                              )}
+                              index={row.project.tasks.findIndex(
+                                (item) => item.id === task.id
+                              )}
+                              key={task.id}
+                              task={task}
+                              top={
+                                DEFAULT_LANE_GAP +
+                                lane.index *
+                                  (DEFAULT_TASK_HEIGHT + DEFAULT_LANE_GAP)
+                              }
+                              selected={selectedTaskId === task.id}
+                              isInteracting={
+                                activeInteraction?.task.id === task.id
+                              }
+                              timeline={timeline}
+                              viewMode={viewMode}
+                              renderTask={renderTask}
+                              renderTaskTooltip={renderTaskTooltip}
+                              onPointerStart={handlePointerStart}
+                              onSelect={(nextTask) => onTaskSelect?.(nextTask)}
+                              onContextMenu={handleContextMenu}
+                            />
+                          ))
+                        )}
+                    </ProjectDropRow>
+                  );
+                } else {
+                  return (
+                    <TaskDropRow
+                      taskId={row.task.id}
+                      projectId={row.project.id}
+                      index={row.index}
+                      className={cx(
+                        "sokkay-gantt__row sokkay-gantt__row--task",
+                        classNames?.taskRow
+                      )}
+                      height={row.height}
+                      key={row.id}
+                    >
+                      {timeline.cells.map((cell) => (
+                        <div
+                          className="sokkay-gantt__grid-cell"
+                          style={{ width: timeline.cellWidth }}
+                          key={cell.id}
+                        >
+                          {renderTimelineCell ? renderTimelineCell(cell) : null}
+                        </div>
+                      ))}
+                      <TaskBar
+                        className={cx(
+                          classNames?.task,
+                          selectedTaskId === row.task.id &&
+                            classNames?.selectedTask
+                        )}
+                        index={row.index}
+                        key={row.task.id}
+                        task={row.task}
+                        top={DEFAULT_LANE_GAP}
+                        selected={selectedTaskId === row.task.id}
+                        isInteracting={
+                          activeInteraction?.task.id === row.task.id
+                        }
                         timeline={timeline}
                         viewMode={viewMode}
-                        labels={resolvedLabels}
-                        renderCollapsedProjectSummary={
-                          renderCollapsedProjectSummary
-                        }
+                        renderTask={renderTask}
+                        renderTaskTooltip={renderTaskTooltip}
+                        onPointerStart={handlePointerStart}
+                        onSelect={(nextTask) => onTaskSelect?.(nextTask)}
+                        onContextMenu={handleContextMenu}
                       />
-                    ) : null;
-                  })()}
-                  {!layout.collapsed &&
-                    layout.lanes.flatMap((lane) =>
-                      lane.tasks.map((task) => (
-                        <TaskBar
-                          className={cx(
-                            classNames?.task,
-                            selectedTaskId === task.id &&
-                              classNames?.selectedTask
-                          )}
-                          index={layout.project.tasks.findIndex(
-                            (item) => item.id === task.id
-                          )}
-                          key={task.id}
-                          task={task}
-                          top={
-                            DEFAULT_LANE_GAP +
-                            lane.index *
-                              (DEFAULT_TASK_HEIGHT + DEFAULT_LANE_GAP)
-                          }
-                          selected={selectedTaskId === task.id}
-                          isInteracting={activeInteraction?.task.id === task.id}
-                          timeline={timeline}
-                          viewMode={viewMode}
-                          renderTask={renderTask}
-                          renderTaskTooltip={renderTaskTooltip}
-                          labels={resolvedLabels}
-                          onPointerStart={handlePointerStart}
-                          onSelect={(nextTask) => onTaskSelect?.(nextTask)}
-                          onContextMenu={handleContextMenu}
-                        />
-                      ))
-                    )}
-                </ProjectDropRow>
-              ))}
+                    </TaskDropRow>
+                  );
+                }
+              })}
               {bottomSpacer > 0 && (
                 <div
                   className="sokkay-gantt__virtual-spacer"

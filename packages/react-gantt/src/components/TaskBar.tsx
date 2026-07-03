@@ -1,5 +1,4 @@
-import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
+import { useDroppable } from "@dnd-kit/core";
 import {
   autoUpdate,
   flip,
@@ -7,48 +6,16 @@ import {
   shift,
   useFloating,
 } from "@floating-ui/react";
-import { MoreHorizontal } from "lucide-react";
 import type * as React from "react";
 import { useCallback, useState } from "react";
 import type { InteractionKind } from "../internal-types";
 import type {
   GanttChartProps,
-  GanttLabels,
   GanttViewMode,
   NormalizedGanttTask,
 } from "../types";
 import { cx } from "../utils/cx";
 import { dateRangeToPixels, type TimelineModel } from "../utils/timeline";
-
-function TransferHandle<TTaskMeta>({
-  task,
-  index,
-  labels,
-}: {
-  task: NormalizedGanttTask<TTaskMeta>;
-  index: number;
-  labels: Pick<GanttLabels<unknown, TTaskMeta>, "transferTask">;
-}) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: `task:${task.id}`,
-      data: { type: "task", taskId: task.id, projectId: task.projectId, index },
-    });
-
-  return (
-    <button
-      ref={setNodeRef}
-      className={cx("sokkay-gantt__task-transfer", isDragging && "is-dragging")}
-      style={{ transform: CSS.Transform.toString(transform) }}
-      type="button"
-      aria-label={labels.transferTask(task)}
-      {...attributes}
-      {...listeners}
-    >
-      <MoreHorizontal size={14} />
-    </button>
-  );
-}
 
 function DefaultTooltip({ task }: { task: NormalizedGanttTask }) {
   return (
@@ -70,7 +37,6 @@ export function TaskBar<TTaskMeta>({
   viewMode,
   renderTask,
   renderTaskTooltip,
-  labels,
   onPointerStart,
   onSelect,
   onContextMenu,
@@ -85,7 +51,6 @@ export function TaskBar<TTaskMeta>({
   viewMode: GanttViewMode;
   renderTask?: GanttChartProps<unknown, TTaskMeta>["renderTask"];
   renderTaskTooltip?: GanttChartProps<unknown, TTaskMeta>["renderTaskTooltip"];
-  labels: Pick<GanttLabels<unknown, TTaskMeta>, "transferTask">;
   onPointerStart: (
     event: React.PointerEvent,
     kind: InteractionKind,
@@ -167,7 +132,6 @@ export function TaskBar<TTaskMeta>({
             <span>{task.name}</span>
           )}
         </div>
-        <TransferHandle task={task} index={index} labels={labels} />
         <span
           className="sokkay-gantt__resize sokkay-gantt__resize--end"
           onPointerDown={(event) => onPointerStart(event, "resize-end", task)}

@@ -253,4 +253,46 @@ describe("GanttChart", () => {
     // It should keep 350px (the last controlled value) instead of jumping back to 240px fallback
     expect(root.style.getPropertyValue("--sg-sidebar-width")).toBe("350px");
   });
+
+  it("renders tasks on separate rows in tree mode", () => {
+    const { container } = render(
+      <GanttChart projects={projects} viewMode="day" layoutMode="tree" />
+    );
+
+    // Sidebar should have project cell and task cell
+    expect(screen.getAllByText("Platform").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("API").length).toBeGreaterThan(0);
+
+    // Timeline should have separate project row and task row
+    const projectRows = container.querySelectorAll(
+      ".sokkay-gantt__row--project"
+    );
+    const taskRows = container.querySelectorAll(".sokkay-gantt__row--task");
+
+    expect(projectRows).toHaveLength(1);
+    expect(taskRows).toHaveLength(1);
+  });
+
+  it("hides task rows when project is collapsed in tree mode", () => {
+    const { container } = render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        layoutMode="tree"
+        collapsedProjectIds={["p1"]}
+      />
+    );
+
+    expect(screen.getAllByText("Platform").length).toBeGreaterThan(0);
+    // Task name in sidebar should NOT be rendered
+    expect(screen.queryByText("API")).not.toBeInTheDocument();
+
+    const projectRows = container.querySelectorAll(
+      ".sokkay-gantt__row--project"
+    );
+    const taskRows = container.querySelectorAll(".sokkay-gantt__row--task");
+
+    expect(projectRows).toHaveLength(1);
+    expect(taskRows).toHaveLength(0);
+  });
 });

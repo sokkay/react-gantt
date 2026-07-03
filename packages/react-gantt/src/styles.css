@@ -94,7 +94,8 @@
 }
 
 .sokkay-gantt__sidebar-header,
-.sokkay-gantt__project-cell {
+.sokkay-gantt__project-cell,
+.sokkay-gantt__task-cell {
   width: max(var(--sg-sidebar-width), var(--sg-sidebar-min-width));
   min-width: max(var(--sg-sidebar-width), var(--sg-sidebar-min-width));
   border-right: 1px solid var(--sg-border);
@@ -303,10 +304,17 @@
   justify-content: space-between;
   gap: 8px;
   overflow: hidden;
-  border: 1px dashed color-mix(in srgb, var(--sg-task) 52%, #64748b);
+  border: 1px solid
+    var(
+      --sg-project-bar-border,
+      color-mix(in srgb, var(--sg-task) 52%, #64748b)
+    );
   border-radius: 7px;
-  background: color-mix(in srgb, var(--sg-task) 14%, var(--sg-surface));
-  color: var(--sg-text);
+  background: var(
+    --sg-project-bar,
+    color-mix(in srgb, var(--sg-task) 14%, var(--sg-surface))
+  );
+  color: var(--sg-project-bar-text, var(--sg-text));
   padding: 0 12px;
   pointer-events: none;
   user-select: none;
@@ -447,4 +455,59 @@
 
 .sokkay-gantt__virtual-spacer {
   flex: 0 0 auto;
+}
+
+.sokkay-gantt__task-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--sg-border);
+  padding: 0 12px 0 42px; /* Indent for task rows */
+  background: var(--sg-surface);
+  height: var(--sg-row-height);
+}
+
+.sokkay-gantt__task-cell.is-dragging {
+  opacity: 0.75;
+}
+
+.sokkay-gantt__task-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--sg-muted-text);
+  cursor: grab;
+  padding: 0;
+}
+
+.sokkay-gantt__task-label {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.sokkay-gantt__collapsed-summary-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.sokkay-gantt__collapsed-summary-progress {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(
+    --sg-project-bar-progress,
+    color-mix(in srgb, var(--sg-task) 25%, transparent)
+  );
+  pointer-events: none;
 }

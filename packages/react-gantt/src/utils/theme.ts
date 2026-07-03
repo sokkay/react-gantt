@@ -48,5 +48,9 @@ export function createThemeStyle({
     "--sg-header-height": theme?.headerHeight,
     "--sg-task-height": theme?.taskHeight,
     "--sg-lane-gap": theme?.laneGap,
+    "--sg-project-bar": theme?.projectBar,
+    "--sg-project-bar-text": theme?.projectBarText,
+    "--sg-project-bar-border": theme?.projectBarBorder,
+    "--sg-project-bar-progress": theme?.projectBarProgress,
   } as React.CSSProperties;
 }

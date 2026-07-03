@@ -3,7 +3,11 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 import type * as React from "react";
-import type { GanttLabels, NormalizedGanttProject } from "../types";
+import type {
+  GanttLabels,
+  NormalizedGanttProject,
+  NormalizedGanttTask,
+} from "../types";
 import { cx } from "../utils/cx";
 
 export function SortableProjectCell<TProjectMeta, TTaskMeta>({
@@ -78,6 +82,60 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   );
 }
 
+export function SortableTaskCell<TTaskMeta>({
+  task,
+  project,
+  children,
+  className,
+  height,
+  index,
+}: {
+  task: NormalizedGanttTask<TTaskMeta>;
+  project: NormalizedGanttProject<unknown, TTaskMeta>;
+  children: React.ReactNode;
+  className?: string;
+  height: number;
+  index: number;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `task-sort:${task.id}`,
+    data: { type: "task", taskId: task.id, projectId: project.id, index },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cx(
+        "sokkay-gantt__task-cell",
+        className,
+        isDragging && "is-dragging"
+      )}
+      style={{
+        height,
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+    >
+      <button
+        className="sokkay-gantt__task-grip"
+        type="button"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical size={14} />
+      </button>
+      <div className="sokkay-gantt__task-label">{children}</div>
+    </div>
+  );
+}
+
 export function ProjectDropRow({
   projectId,
   children,
@@ -92,6 +150,37 @@ export function ProjectDropRow({
   const { setNodeRef, isOver } = useDroppable({
     id: `project-row:${projectId}`,
     data: { type: "project-row", projectId },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cx(className, isOver && "is-over")}
+      style={{ height }}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function TaskDropRow({
+  taskId,
+  projectId,
+  index,
+  children,
+  className,
+  height,
+}: {
+  taskId: string;
+  projectId: string;
+  index: number;
+  children: React.ReactNode;
+  className?: string;
+  height: number;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `task-row:${taskId}`,
+    data: { type: "task-row", taskId, projectId, index },
   });
 
   return (

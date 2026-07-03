@@ -170,6 +170,7 @@ export default function App() {
   const ganttRef = useGanttChart();
   const [projects, setProjects] = useState(initialProjects);
   const [viewMode, setViewMode] = useState<GanttViewMode>("day");
+  const [layoutMode, setLayoutMode] = useState<"compact" | "tree">("tree");
   const [snapTo, setSnapTo] = useState<GanttViewMode | "none" | "viewMode">(
     "viewMode"
   );
@@ -185,8 +186,10 @@ export default function App() {
     return d instanceof Date && !isNaN(d.getTime()) && str.length >= 10;
   };
 
-  const resolvedMinDate = minDate && isValidDateString(minDate) ? minDate : undefined;
-  const resolvedMaxDate = maxDate && isValidDateString(maxDate) ? maxDate : undefined;
+  const resolvedMinDate =
+    minDate && isValidDateString(minDate) ? minDate : undefined;
+  const resolvedMaxDate =
+    maxDate && isValidDateString(maxDate) ? maxDate : undefined;
 
   const selectedTask = useMemo(
     () =>
@@ -324,6 +327,25 @@ export default function App() {
               )}
             </div>
           </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span
+              style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
+            >
+              Layout:
+            </span>
+            <div className="view-switcher" aria-label="Layout Mode">
+              {(["compact", "tree"] as const).map((mode) => (
+                <button
+                  className={mode === layoutMode ? "is-active" : undefined}
+                  type="button"
+                  key={mode}
+                  onClick={() => setLayoutMode(mode)}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <div className="docs-actions">
           <button
@@ -347,6 +369,7 @@ export default function App() {
             ref={ganttRef}
             projects={projects}
             viewMode={viewMode}
+            layoutMode={layoutMode}
             minDate={resolvedMinDate}
             maxDate={resolvedMaxDate}
             snapTo={snapTo === "viewMode" ? undefined : snapTo}
@@ -472,23 +495,60 @@ export default function App() {
             <dd>{Math.round(sidebarWidth)}px</dd>
           </dl>
           <h2>Timeline bounds</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "20px" }}>
-            <label style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", color: "#64748b", fontWeight: 600 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              marginBottom: "20px",
+            }}
+          >
+            <label
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+                fontSize: "12px",
+                color: "#64748b",
+                fontWeight: 600,
+              }}
+            >
               Min Date:
               <input
                 type="date"
                 value={minDate}
                 onChange={(e) => setMinDate(e.target.value)}
-                style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "13px", fontFamily: "inherit" }}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
+                  fontSize: "13px",
+                  fontFamily: "inherit",
+                }}
               />
             </label>
-            <label style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", color: "#64748b", fontWeight: 600 }}>
+            <label
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+                fontSize: "12px",
+                color: "#64748b",
+                fontWeight: 600,
+              }}
+            >
               Max Date:
               <input
                 type="date"
                 value={maxDate}
                 onChange={(e) => setMaxDate(e.target.value)}
-                style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "13px", fontFamily: "inherit" }}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
+                  fontSize: "13px",
+                  fontFamily: "inherit",
+                }}
               />
             </label>
           </div>

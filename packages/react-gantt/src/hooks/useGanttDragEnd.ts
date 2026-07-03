@@ -44,60 +44,62 @@ export function useGanttDragEnd<TProjectMeta, TTaskMeta>({
         }
       }
 
-      if (active.type === "task" && over.type === "task") {
+      if (active.type === "task") {
         const taskId = String(active.taskId);
-        const overTaskId = String(over.taskId);
         const fromProjectId = String(active.projectId);
-        const toProjectId = String(over.projectId);
-        const targetProject = findTaskProject(normalizedProjects, overTaskId);
 
-        if (!targetProject || taskId === overTaskId) {
-          return;
-        }
+        if (over.type === "task" || over.type === "task-row") {
+          const overTaskId = String(over.taskId);
+          const toProjectId = String(over.projectId);
+          const targetProject = findTaskProject(normalizedProjects, overTaskId);
 
-        if (fromProjectId === toProjectId) {
-          const result = moveTaskWithinProject(
-            targetProject.tasks,
-            taskId,
-            overTaskId
-          );
-
-          if (result.fromIndex !== result.toIndex) {
-            onTaskReorder?.({
-              taskId,
-              projectId: fromProjectId,
-              fromIndex: result.fromIndex,
-              toIndex: result.toIndex,
-              tasks: result.tasks,
-            });
+          if (!targetProject || taskId === overTaskId) {
+            return;
           }
-          return;
-        }
 
-        onTaskTransfer?.({
-          taskId,
-          fromProjectId,
-          toProjectId,
-          index: targetProject.tasks.findIndex(
-            (task) => task.id === overTaskId
-          ),
-        });
-        return;
-      }
+          if (fromProjectId === toProjectId) {
+            const result = moveTaskWithinProject(
+              targetProject.tasks,
+              taskId,
+              overTaskId
+            );
 
-      if (active.type === "task" && over.type === "project-row") {
-        const fromProjectId = String(active.projectId);
-        const toProjectId = String(over.projectId);
+            if (result.fromIndex !== result.toIndex) {
+              onTaskReorder?.({
+                taskId,
+                projectId: fromProjectId,
+                fromIndex: result.fromIndex,
+                toIndex: result.toIndex,
+                tasks: result.tasks,
+              });
+            }
+            return;
+          }
 
-        if (fromProjectId !== toProjectId) {
           onTaskTransfer?.({
-            taskId: String(active.taskId),
+            taskId,
             fromProjectId,
             toProjectId,
-            index:
-              normalizedProjects.find((project) => project.id === toProjectId)
-                ?.tasks.length ?? 0,
+            index: targetProject.tasks.findIndex(
+              (task) => task.id === overTaskId
+            ),
           });
+          return;
+        }
+
+        if (over.type === "project-row" || over.type === "project") {
+          const toProjectId = String(over.projectId);
+
+          if (fromProjectId !== toProjectId) {
+            onTaskTransfer?.({
+              taskId,
+              fromProjectId,
+              toProjectId,
+              index:
+                normalizedProjects.find((project) => project.id === toProjectId)
+                  ?.tasks.length ?? 0,
+            });
+          }
         }
       }
     },

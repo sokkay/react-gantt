@@ -518,12 +518,6 @@
   pointer-events: none;
 }
 
-.sokkay-gantt__project-cell,
-.sokkay-gantt__task-cell,
-.sokkay-gantt__row {
-  transition: background-color 150ms ease;
-}
-
 .sokkay-gantt__project-cell.is-hovered,
 .sokkay-gantt__task-cell.is-hovered,
 .sokkay-gantt__row.is-hovered {

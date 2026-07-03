@@ -98,4 +98,11 @@ describe("timeline utilities", () => {
       ).width
     ).toBeLessThan(timeline.cellWidth);
   });
+
+  it("applies custom cell widths if provided", () => {
+    const timeline = buildTimeline(projects, "week", { week: 200 });
+
+    expect(timeline.cellWidth).toBe(200);
+    expect(timeline.width).toBe(timeline.cells.length * 200);
+  });
 });

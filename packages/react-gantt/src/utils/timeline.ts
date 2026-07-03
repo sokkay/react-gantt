@@ -1,10 +1,10 @@
 import { format } from "date-fns";
-import type { GanttViewMode, NormalizedGanttProject } from "../types";
+import type { GanttCellWidths, GanttViewMode, NormalizedGanttProject } from "../types";
 import { addViewUnits, diffViewUnits, snapDate } from "./dates";
 
 const CELL_WIDTH: Record<GanttViewMode, number> = {
   day: 48,
-  week: 72,
+  week: 120,
   month: 144,
   quarter: 120,
   year: 148,
@@ -35,8 +35,10 @@ export interface TimelineModel {
 
 export function buildTimeline(
   projects: Array<NormalizedGanttProject>,
-  viewMode: GanttViewMode
+  viewMode: GanttViewMode,
+  customCellWidths?: GanttCellWidths
 ): TimelineModel {
+  const cellWidth = customCellWidths?.[viewMode] ?? CELL_WIDTH[viewMode];
   const tasks = projects.flatMap((project) => project.tasks);
   const minStart = tasks.reduce<Date | null>(
     (acc, task) => (!acc || task.start < acc ? task.start : acc),
@@ -73,8 +75,8 @@ export function buildTimeline(
     start,
     end,
     cells,
-    cellWidth: CELL_WIDTH[viewMode],
-    width: cells.length * CELL_WIDTH[viewMode],
+    cellWidth,
+    width: cells.length * cellWidth,
   };
 }
 

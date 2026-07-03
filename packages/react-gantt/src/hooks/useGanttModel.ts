@@ -24,9 +24,10 @@ export function useGanttModel<TProjectMeta, TTaskMeta>({
   overscan,
   scrollTop,
   scrollHeight,
+  customCellWidths,
 }: Pick<
   GanttChartProps<TProjectMeta, TTaskMeta>,
-  "projects" | "viewMode" | "labels" | "selectedTaskId"
+  "projects" | "viewMode" | "labels" | "selectedTaskId" | "customCellWidths"
 > & {
   collapsedProjectIds: string[];
   virtualized: boolean;
@@ -47,8 +48,8 @@ export function useGanttModel<TProjectMeta, TTaskMeta>({
     [projects]
   );
   const timeline = useMemo(
-    () => buildTimeline(normalizedProjects, viewMode),
-    [normalizedProjects, viewMode]
+    () => buildTimeline(normalizedProjects, viewMode, customCellWidths),
+    [normalizedProjects, viewMode, customCellWidths]
   );
   const layouts = useMemo(
     () =>

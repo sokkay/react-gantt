@@ -53,6 +53,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     classNames,
     theme,
     labels,
+    customCellWidths,
     onTaskMove,
     onTaskResize,
     onTaskTransfer,
@@ -112,6 +113,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     overscan,
     scrollTop: scrollState.top,
     scrollHeight: scrollState.height,
+    customCellWidths,
   });
   const showSelectionToolbar =
     selectionToolbarMode === "static" ||

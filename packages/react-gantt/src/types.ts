@@ -4,6 +4,8 @@ export type GanttDateInput = Date | string | number;
 
 export type GanttViewMode = "day" | "week" | "month" | "quarter" | "year";
 
+export type GanttCellWidths = Partial<Record<GanttViewMode, number>>;
+
 export type GanttSelectionToolbarMode = "auto" | "static" | "hidden";
 
 export interface GanttTask<TMeta = unknown> {
@@ -152,6 +154,7 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   collapsedProjectIds?: string[];
   defaultCollapsedProjectIds?: string[];
   snapTo?: GanttViewMode | "none";
+  customCellWidths?: GanttCellWidths;
   virtualized?: boolean;
   overscan?: number;
   sidebarWidth?: string | number;

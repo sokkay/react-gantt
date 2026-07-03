@@ -14,6 +14,7 @@ export function CollapsedProjectSummaryBar<TProjectMeta, TTaskMeta>({
   className,
   labels,
   renderCollapsedProjectSummary,
+  isInteracting,
 }: {
   summary: CollapsedProjectSummary<TProjectMeta, TTaskMeta>;
   timeline: TimelineModel;
@@ -24,6 +25,7 @@ export function CollapsedProjectSummaryBar<TProjectMeta, TTaskMeta>({
     TProjectMeta,
     TTaskMeta
   >["renderCollapsedProjectSummary"];
+  isInteracting?: boolean;
 }) {
   const range = dateRangeToPixels(
     summary.start,
@@ -40,7 +42,11 @@ export function CollapsedProjectSummaryBar<TProjectMeta, TTaskMeta>({
 
   return (
     <div
-      className={cx("sokkay-gantt__collapsed-summary", className)}
+      className={cx(
+        "sokkay-gantt__collapsed-summary",
+        isInteracting && "is-interacting",
+        className
+      )}
       data-testid={`project-summary-${summary.project.id}`}
       style={{ left: range.left, width }}
     >

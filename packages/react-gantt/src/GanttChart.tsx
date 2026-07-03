@@ -415,6 +415,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                             renderCollapsedProjectSummary={
                               renderCollapsedProjectSummary
                             }
+                            isInteracting={activeInteraction !== null}
                           />
                         ) : null;
                       })()}

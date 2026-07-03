@@ -323,6 +323,12 @@
     width var(--sg-animation-speed) var(--sg-transition-curve);
 }
 
+.sokkay-gantt__collapsed-summary.is-interacting {
+  transition:
+    left 0s,
+    width 0s;
+}
+
 .sokkay-gantt__collapsed-summary strong,
 .sokkay-gantt__collapsed-summary span {
   overflow: hidden;

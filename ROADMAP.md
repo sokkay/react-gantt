@@ -1,81 +1,102 @@
-# Roadmap - @sokkay/react-gantt
+# Roadmap - @sokkay/react-gantt (v2)
 
 ## Vision
 
-`@sokkay/react-gantt` sera una libreria de componentes para React 18+ enfocada en construir cartas Gantt interactivas, personalizables y controladas por el consumidor.
+`@sokkay/react-gantt` es una libreria de componentes para React 18+ enfocada en construir cartas Gantt interactivas, altamente optimizadas, personalizables y 100% controladas por el consumidor.
 
-El objetivo inicial es entregar una base solida para visualizar proyectos y tareas, editar fechas con interacciones directas y permitir que cada aplicacion adapte la experiencia visual y funcional a sus propias necesidades.
+Este documento actua como un backlog/listado de caracteristicas pendientes del core anterior y las nuevas propuestas de uso, permitiendo al desarrollador priorizar e implementar los items de forma independiente.
 
-## Decisiones Iniciales
+---
 
-- El proyecto sera nuevo, inspirado en `MikaStiebitz/React-Modern-Gantt`, no un fork directo.
-- La API sera controlada por callbacks: la libreria emitira eventos y el consumidor mantendra el estado.
-- El paquete principal sera `@sokkay/react-gantt`.
-- La base tecnica usara monorepo con `pnpm`, TypeScript, React, Tailwind y una demo con Vite.
-- La libreria sera compatible con React 18 en adelante.
-- Los estilos base se distribuiran con la libreria, evitando exigir una configuracion Tailwind especifica al consumidor.
+## Logros Completados (Roadmap v1)
 
-## MVP v0.1
+- **Estructura y Core:** Monorepo con `pnpm`, soporte de TypeScript, React 18+, y estilos base CSS que no exigen configuracion de Tailwind en el consumidor.
+- **Visualizacion y Tiempos:** Renderizado de proyectos y tareas con soporte de multiples vistas (dia, semana, mes, trimestre y ano).
+- **Interacciones Directas:** Drag and drop y resize de tareas mediante eventos pointer con snapping configurable.
+- **Orden y Estructura:** Reordenamiento vertical de proyectos, ordenamiento de tareas en el mismo carril y transferencia de tareas entre diferentes proyectos.
+- **Personalizacion Extrema:** Slots y render props para elementos principales (`renderTask`, `renderTaskTooltip`, `renderContextMenu`, `renderSelectionToolbar`, `renderProjectCell`).
+- **Rendimiento:** Virtualizacion vertical y horizontal para grandes volumenes de datos y auto-scroll inteligente durante interacciones de arrastre.
 
-- [x] Crear el scaffold inicial de la libreria y la demo Vite.
-- [x] Renderizar proyectos y tareas en una vista tipo Gantt.
-- [x] Soportar vistas por dia, semana, mes, cuarto y ano.
-- [x] Permitir mover tareas horizontalmente para cambiar fecha inicial y fecha final manteniendo la duracion.
-- [x] Permitir modificar el alcance de una tarea arrastrando el borde inicial o final.
-- [x] Emitir callbacks para cambios de movimiento, resize y seleccion.
-- [x] Mantener la libreria como componente controlado, sin persistencia interna obligatoria.
+---
 
-## v0.2 UX de Edicion
+## Listado de Features Pendientes (Backlog v2)
 
-- [x] Agregar seleccion de tarea.
-- [ ] Agregar header o toolbar con iconos y tooltips para acciones sobre la tarea seleccionada.
-- [x] Agregar tooltip custom al pasar el mouse sobre cada tarea.
-- [x] Agregar menu secundario custom para acciones como copiar, cortar y futuras opciones extensibles.
-- [x] Exponer slots o render props para reemplazar las piezas principales de la experiencia.
+### 1. Control de Edición y Permisos
+- [ ] **Modo `readOnly` global y granular**
+  - Deshabilitar toda edicion de golpe: `<GanttChart readOnly />`.
+  - O dar control preciso por accion mediante objeto:
+    ```tsx
+    editable={{ move: false, resize: false, transfer: false, reorder: false }}
+    ```
+- [ ] **Bloqueo individual de tareas (Task locking)**
+  - Atributo en el modelo de la tarea para deshabilitar edicion de forma individual (util para tareas cerradas o ya ejecutadas):
+    ```ts
+    task.locked = true
+    task.resizable = false
+    task.draggable = false
+    ```
 
-## v0.3 Reordenamiento
+### 2. Eventos y Callbacks
+- [ ] **Eventos de accion directa sobre elementos**
+  - Callbacks para eventos click sin requerir seleccion previa o barras de herramientas:
+    ```ts
+    onTaskClick?: (task: GanttTask, event: React.MouseEvent) => void;
+    onTaskDoubleClick?: (task: GanttTask, event: React.MouseEvent) => void;
+    onProjectClick?: (project: GanttProject, event: React.MouseEvent) => void;
+    ```
+- [ ] **Payloads con objetos completos y tipados en callbacks**
+  - Modificar callbacks de mutacion (`onTaskMove`, `onTaskResize`, `onTaskTransfer`) para que pasen las entidades completas y su `meta` tipado, en lugar de solo IDs de referencia:
+    ```ts
+    onTaskMove?: (payload: { task: GanttTask<TMeta>; project: GanttProject<PMeta>; start: Date; end: Date }) => void;
+    ```
 
-- [x] Permitir mover proyectos de posicion en la columna Y.
-- [x] Permitir mover tareas de un proyecto a otro.
-- [x] Permitir ordenar tareas dentro de un mismo proyecto.
-- [x] Emitir callbacks especificos para reordenamiento de proyectos y transferencia de tareas.
-- [x] Mostrar estados visuales claros durante drag, drop y hover.
+### 3. Navegación, Zoom y Rango Visual
+- [ ] **Metodos imperativos de UI en la ref publica**
+  - Exponer helpers en `ganttRef` para permitir al consumidor crear controles de navegacion externos:
+    ```ts
+    ganttRef.current?.scrollToToday()
+    ganttRef.current?.fitToRange()
+    ganttRef.current?.zoomIn()
+    ganttRef.current?.zoomOut()
+    ```
+- [ ] **Configuracion del rango visible y centrado inicial**
+  - Diferenciar las fechas limite del timeline de la fecha en la que se debe inicializar el scroll (ej: ver todo el ano pero iniciar posicionado en el mes actual):
+    ```tsx
+    timelineStart={...}
+    timelineEnd={...}
+    initialScrollDate={...}
+    ```
 
-## v0.4 Personalizacion
+### 4. Localización y Formateo
+- [ ] **Soporte de localizacion nativa (Locale)**
+  - Prop `locale` (ej. `"es"`) para internacionalizar headers de forma nativa sin obligar a usar custom renderers.
+- [ ] **Formateadores especificos de fecha**
+  - Prop `dateFormatters` para personalizar textos por nivel de zoom (mes, semana, dia) de manera declarativa:
+    ```tsx
+    dateFormatters={{ month: (date) => string }}
+    ```
 
-- [x] Exponer `renderTask` para personalizar la tarjeta/barra de tarea.
-- [x] Exponer `renderTaskTooltip` para personalizar el detalle por hover.
-- [x] Exponer `renderContextMenu` para personalizar el menu secundario.
-- [x] Exponer `renderSelectionToolbar` para personalizar el toolbar de tarea seleccionada.
-- [x] Exponer `renderProjectCell` para personalizar la columna de proyectos.
-- [x] Agregar soporte de tema mediante CSS variables, class names y Tailwind.
+### 5. Estados Visuales y UX
+- [ ] **Empty State Nativo**
+  - Render prop para disenar la UI cuando la lista de proyectos y tareas esta vacia:
+    ```tsx
+    renderEmptyState={() => <CustomEmptyState />}
+    ```
 
-## v0.5 Escalabilidad
+### 6. Planificación Avanzada
+- [ ] **Dependencias entre tareas**
+  - Visualizacion grafica de relaciones de precedencia (ej. Finish-to-Start) mediante lineas de conexion en el timeline.
+- [ ] **Milestones (Hitos)**
+  - Representacion visual de eventos puntuales de duracion cero.
+- [ ] **Validaciones de negocio dinamicas en callbacks**
+  - Permitir interceptar e impedir movimientos/resizes basados en reglas personalizadas (ej. validar que una tarea no se extienda mas alla del limite del proyecto).
+- [ ] **Exportacion de datos y vistas**
+  - Facilitar la exportacion o impresion del grafico a PDF/imagen y la exportacion de datos del Gantt.
 
-- [x] Agregar virtualizacion para listas grandes de proyectos y tareas.
-- [x] Agregar auto-scroll durante drag horizontal y vertical.
-- [x] Agregar snapping configurable por unidad de tiempo.
-- [x] Optimizar render para evitar recalculos innecesarios en datasets grandes.
-- [x] Mantener una API estable para que las mejoras de rendimiento no rompan integraciones existentes.
+---
 
-## v0.6 Planificacion Avanzada
+## Estrategia de Testing y Calidad
 
-- [ ] Agregar soporte para dependencias entre tareas.
-- [ ] Agregar milestones.
-- [x] Agregar progreso por tarea.
-- [ ] Agregar validaciones opcionales para reglas de negocio.
-- [ ] Evaluar exportacion de datos o vistas.
-- [ ] Preparar integraciones con estructuras externas de planificacion.
-
-## Testing Inicial
-
-- [x] El inicio del proyecto incluira unit tests para utilidades de fechas, calculos de posicion y transformaciones de datos.
-- [x] El inicio del proyecto incluira component tests para render, seleccion, tooltips, menus y callbacks principales.
-- [x] No se incluiran tests E2E al inicio.
-- [x] Playwright queda como mejora futura cuando la API y las interacciones esten mas estables.
-
-## Referencia
-
-- Proyecto de referencia: `MikaStiebitz/React-Modern-Gantt`.
-- Demo de referencia: `https://react-gantt-demo.vercel.app/components#granular-controls`.
-- La referencia se usara para inspirar capacidades y decisiones de producto, manteniendo una implementacion propia.
+- **Tests de Integridad:** Mantener cubiertos con unit tests los calculos de fechas, snapping y transformaciones.
+- **Tests de Interaccion:** Probar con `@testing-library/react` los nuevos flags (`readOnly`, `editable`, `locked`) y la correcta emision de callbacks tipados.
+- **E2E Testing:** Integrar Playwright en el futuro para validar auto-scrolls, drag and drop con virtualizacion, y scrollbars complejos.

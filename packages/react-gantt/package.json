@@ -2,6 +2,10 @@
   "name": "@sokkay/react-gantt",
   "version": "0.2.2",
   "description": "Controlled React Gantt chart component with timeline editing primitives.",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "type": "module",
   "license": "MIT",
   "sideEffects": [

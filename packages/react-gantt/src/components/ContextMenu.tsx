@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type {
   ContextMenuActions,
   GanttChartProps,
@@ -22,8 +23,24 @@ export function ContextMenu<TTaskMeta>({
   labels: Pick<GanttLabels<unknown, TTaskMeta>, "selectAction" | "closeAction">;
   renderContextMenu?: GanttChartProps<unknown, TTaskMeta>["renderContextMenu"];
 }) {
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        actions.close();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [actions]);
+
   return (
     <div
+      ref={menuRef}
       className="sokkay-gantt__context-menu"
       style={{ left: contextMenu.x, top: contextMenu.y }}
       role="menu"

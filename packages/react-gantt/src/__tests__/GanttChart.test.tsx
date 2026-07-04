@@ -83,6 +83,24 @@ describe("GanttChart", () => {
     );
   });
 
+  it("closes the context menu when clicking outside", () => {
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        renderContextMenu={({ task }) => (
+          <button type="button">Copy {task.name}</button>
+        )}
+      />
+    );
+
+    fireEvent.contextMenu(screen.getByTestId("task-t1"));
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
   it("emits move and resize payloads with dates", () => {
     const onTaskMove = vi.fn();
     const onTaskResize = vi.fn();

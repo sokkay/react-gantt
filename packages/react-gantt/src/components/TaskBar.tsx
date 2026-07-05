@@ -7,7 +7,7 @@ import {
   useFloating,
 } from "@floating-ui/react";
 import type * as React from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { InteractionKind } from "../internal-types";
 import type {
   GanttChartProps,
@@ -78,19 +78,23 @@ export function TaskBar<TTaskMeta>({
     middleware: [offset(8), flip(), shift({ padding: 8 })],
   });
 
+  const elementRef = useRef<HTMLDivElement | null>(null);
+
   const virtualElement = useMemo(() => {
     if (!pointerCoords) return null;
     return {
       getBoundingClientRect() {
+        const rect = elementRef.current?.getBoundingClientRect();
+        const y = rect ? rect.top : pointerCoords.y;
         return {
           width: 0,
           height: 0,
           x: pointerCoords.x,
-          y: pointerCoords.y,
-          top: pointerCoords.y,
+          y,
+          top: y,
           left: pointerCoords.x,
           right: pointerCoords.x,
-          bottom: pointerCoords.y,
+          bottom: y,
         };
       },
     };
@@ -110,6 +114,7 @@ export function TaskBar<TTaskMeta>({
   const progress = Math.max(0, Math.min(task.progress ?? 0, 100));
   const setReference = useCallback(
     (node: HTMLDivElement | null) => {
+      elementRef.current = node;
       setFloatingReference(node);
       setDropNodeRef(node);
     },

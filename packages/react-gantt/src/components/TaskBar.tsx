@@ -7,7 +7,7 @@ import {
   useFloating,
 } from "@floating-ui/react";
 import type * as React from "react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { InteractionKind } from "../internal-types";
 import type {
   GanttChartProps,
@@ -65,6 +65,7 @@ export function TaskBar<TTaskMeta>({
   isInteracting?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [pointerCoords, setPointerCoords] = useState<{ x: number; y: number } | null>(null);
   const { setNodeRef: setDropNodeRef, isOver } = useDroppable({
     id: `task-drop:${task.id}`,
     data: { type: "task", taskId: task.id, projectId: task.projectId, index },
@@ -76,6 +77,33 @@ export function TaskBar<TTaskMeta>({
     placement: "top",
     middleware: [offset(8), flip(), shift({ padding: 8 })],
   });
+
+  const virtualElement = useMemo(() => {
+    if (!pointerCoords) return null;
+    return {
+      getBoundingClientRect() {
+        return {
+          width: 0,
+          height: 0,
+          x: pointerCoords.x,
+          y: pointerCoords.y,
+          top: pointerCoords.y,
+          left: pointerCoords.x,
+          right: pointerCoords.x,
+          bottom: pointerCoords.y,
+        };
+      },
+    };
+  }, [pointerCoords]);
+
+  useEffect(() => {
+    if (virtualElement) {
+      refs.setPositionReference(virtualElement);
+    } else {
+      refs.setPositionReference(null);
+    }
+  }, [virtualElement, refs]);
+
   const { setReference: setFloatingReference, setFloating } = refs;
   const range = dateRangeToPixels(task.start, task.end, timeline, viewMode);
   const width = Math.max(range.width, 36);
@@ -108,8 +136,14 @@ export function TaskBar<TTaskMeta>({
             "--sg-task-color": task.color,
           } as React.CSSProperties
         }
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
+        onPointerEnter={(event) => {
+          setPointerCoords({ x: event.clientX, y: event.clientY });
+          setOpen(true);
+        }}
+        onPointerLeave={() => {
+          setOpen(false);
+          setPointerCoords(null);
+        }}
         onPointerDown={(event) => onPointerStart(event, "move", task)}
         onClick={(event) => {
           event.stopPropagation();

@@ -55,7 +55,7 @@ describe("GanttChart", () => {
       />
     );
 
-    fireEvent.mouseEnter(screen.getByTestId("task-t1"));
+    fireEvent.pointerEnter(screen.getByTestId("task-t1"));
     expect(await screen.findByText("Tooltip for API")).toBeInTheDocument();
   });
 

@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { addDays, format } from "date-fns";
 import type {
   GanttCellWidths,
   GanttViewMode,
@@ -105,7 +105,7 @@ export function dateRangeToPixels(
   viewMode: GanttViewMode
 ) {
   const left = dateToPrecisePixels(start, timeline, viewMode);
-  const right = dateToPrecisePixels(end, timeline, viewMode);
+  const right = dateToPrecisePixels(addDays(end, 1), timeline, viewMode);
 
   return {
     left,

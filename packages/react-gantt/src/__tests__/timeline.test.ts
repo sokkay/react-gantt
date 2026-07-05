@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { NormalizedGanttProject } from "../types";
+import { normalizeDate } from "../utils/dates";
 import {
   buildTimeline,
   dateRangeToPixels,
@@ -97,6 +98,33 @@ describe("timeline utilities", () => {
         "month"
       ).width
     ).toBeLessThan(timeline.cellWidth);
+  });
+
+  it("fills the entire month for a task that spans from the first to the last day of the month", () => {
+    const timeline = buildTimeline(
+      [
+        {
+          ...projects[0],
+          tasks: [
+            {
+              ...projects[0].tasks[0],
+              start: normalizeDate("2026-07-01"),
+              end: normalizeDate("2026-07-31"),
+            },
+          ],
+        },
+      ],
+      "month"
+    );
+
+    const range = dateRangeToPixels(
+      normalizeDate("2026-07-01"),
+      normalizeDate("2026-07-31"),
+      timeline,
+      "month"
+    );
+
+    expect(range.width).toBeCloseTo(timeline.cellWidth, 5);
   });
 
   it("applies custom cell widths if provided", () => {

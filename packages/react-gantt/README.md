@@ -179,6 +179,7 @@ Behavior props:
 - `collapsedProjectIds` / `defaultCollapsedProjectIds`
 - `selectionToolbarMode`: `auto`, `static` or `hidden`
 - `labels`: translated UI strings and aria labels
+- `locale`: `date-fns` locale object for timeline header date formatting
 - `sidebarWidth` / `minSidebarWidth`: fixed project sidebar sizing
 - `onSidebarWidthChange`: receives sidebar resize changes from the drag handle
 - `snapTo`: `day`, `week`, `month`, `quarter`, `year` or `none`
@@ -203,6 +204,18 @@ Labels:
     expandProject: (project) => `Expandir ${project.name}`,
     transferTask: (task) => `Mover ${task.name} a otro proyecto`,
   }}
+/>
+```
+
+Locale:
+
+```tsx
+import { es } from "date-fns/locale";
+
+<GanttChart
+  projects={projects}
+  viewMode="month"
+  locale={es}
 />
 ```
 

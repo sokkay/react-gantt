@@ -58,6 +58,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     classNames,
     theme,
     labels,
+    locale,
     customCellWidths,
     minDate,
     maxDate,
@@ -128,6 +129,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     customCellWidths,
     minDate: normalizedMinDate,
     maxDate: normalizedMaxDate,
+    locale,
     layoutMode,
   });
   const showSelectionToolbar =

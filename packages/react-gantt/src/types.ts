@@ -1,3 +1,4 @@
+import type { Locale } from "date-fns";
 import type { ReactNode } from "react";
 
 /**
@@ -345,6 +346,8 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   theme?: GanttTheme;
   /** Custom localized labels and accessibility text overrides. */
   labels?: Partial<GanttLabels<TProjectMeta, TTaskMeta>>;
+  /** Locale used to format timeline header dates. Pass a `date-fns` locale object, e.g. `import { es } from "date-fns/locale"`. */
+  locale?: Locale;
   /** Layout mode of the Gantt chart: 'compact' renders tasks packed in lanes, 'tree' renders tasks on their own rows under projects. */
   layoutMode?: "compact" | "tree";
   /** Custom render function for rendering task cells in the sidebar (only in tree mode). */

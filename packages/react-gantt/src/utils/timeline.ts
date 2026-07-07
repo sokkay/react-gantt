@@ -1,4 +1,4 @@
-import { addDays, format } from "date-fns";
+import { addDays, format, type Locale } from "date-fns";
 import type {
   GanttCellWidths,
   GanttViewMode,
@@ -42,7 +42,8 @@ export function buildTimeline(
   viewMode: GanttViewMode,
   customCellWidths?: GanttCellWidths,
   minDate?: Date,
-  maxDate?: Date
+  maxDate?: Date,
+  locale?: Locale
 ): TimelineModel {
   const cellWidth = customCellWidths?.[viewMode] ?? CELL_WIDTH[viewMode];
   const tasks = projects.flatMap((project) => project.tasks);
@@ -74,7 +75,7 @@ export function buildTimeline(
       id: `${viewMode}-${cellStart.toISOString()}`,
       start: cellStart,
       end: cellEnd,
-      label: format(cellStart, LABEL_FORMAT[viewMode]),
+      label: format(cellStart, LABEL_FORMAT[viewMode], { locale }),
     };
   });
 

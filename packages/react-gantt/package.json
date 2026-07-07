@@ -1,6 +1,6 @@
 {
   "name": "@sokkay/react-gantt",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Controlled React Gantt chart component with timeline editing primitives.",
   "publishConfig": {
     "access": "public",

@@ -1,5 +1,21 @@
 # @sokkay/react-gantt
 
+## 0.3.0
+
+### Minor Changes
+
+- b054277: fix: extend task visual bar to cover the last day inclusively
+- 4c2d3ef: feat: position task tooltip at hover entry coordinates for long tasks
+- a7b6259: feat: add inclusive period snap helpers for task edges (`snapDateCeil`, `snapEndDate`)
+- fab3967: feat: add timeline snap grid based on chart cell divisions
+- a6bfbd2: feat: expose `theme.fontFamily` for host typography integration
+- feat: add `locale` prop to format timeline header dates with `date-fns` locales
+
+### Patch Changes
+
+- 25829e8: fix: align tooltip Y coordinate to top of task bar to prevent hover loops
+- d2ef808: fix: snap move and resize to timeline divisions or calendar units when `snapTo` follows `viewMode`
+
 ## 0.2.2
 
 ### Patch Changes

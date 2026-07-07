@@ -28,6 +28,7 @@ export function useGanttModel<TProjectMeta, TTaskMeta>({
   customCellWidths,
   minDate,
   maxDate,
+  locale,
   layoutMode = "compact",
 }: Pick<
   GanttChartProps<TProjectMeta, TTaskMeta>,
@@ -36,6 +37,7 @@ export function useGanttModel<TProjectMeta, TTaskMeta>({
   | "labels"
   | "selectedTaskId"
   | "customCellWidths"
+  | "locale"
   | "layoutMode"
 > & {
   collapsedProjectIds: string[];
@@ -65,9 +67,10 @@ export function useGanttModel<TProjectMeta, TTaskMeta>({
         viewMode,
         customCellWidths,
         minDate,
-        maxDate
+        maxDate,
+        locale
       ),
-    [normalizedProjects, viewMode, customCellWidths, minDate, maxDate]
+    [normalizedProjects, viewMode, customCellWidths, minDate, maxDate, locale]
   );
   const flatRows = useMemo<
     Array<GanttRowModel<TProjectMeta, TTaskMeta>>

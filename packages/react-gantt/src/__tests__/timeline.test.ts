@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { es } from "date-fns/locale";
 import type { NormalizedGanttProject } from "../types";
 import { normalizeDate } from "../utils/dates";
 import {
@@ -165,5 +166,14 @@ describe("timeline utilities", () => {
 
     expect(timeline.cellWidth).toBe(200);
     expect(timeline.width).toBe(timeline.cells.length * 200);
+  });
+
+  it("formats header labels with the provided locale", () => {
+    const timeline = buildTimeline(projects, "month", undefined, undefined, undefined, es);
+    const julyCell = timeline.cells.find(
+      (cell) => cell.start.getMonth() === 6 && cell.start.getFullYear() === 2026
+    );
+
+    expect(julyCell?.label).toBe("jul 2026");
   });
 });

@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { es } from "date-fns/locale";
 import { describe, expect, it, vi } from "vitest";
 import { GanttChart } from "../GanttChart";
 import type { GanttProject } from "../types";
@@ -203,6 +204,19 @@ describe("GanttChart", () => {
 
     expect(screen.getByText("Proyecto")).toBeInTheDocument();
     expect(screen.getByText("Sin seleccion")).toBeInTheDocument();
+  });
+
+  it("formats timeline headers with the provided locale", () => {
+    const { container } = render(
+      <GanttChart projects={projects} viewMode="month" locale={es} />
+    );
+
+    const headerCells = container.querySelectorAll(
+      ".sokkay-gantt__header-cell"
+    );
+    const labels = Array.from(headerCells).map((cell) => cell.textContent);
+
+    expect(labels).toContain("jul 2026");
   });
 
   it("applies configurable sidebar sizing", () => {

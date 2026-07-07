@@ -68,6 +68,22 @@ export function snapDate(date: Date, viewMode: GanttViewMode): Date {
   }
 }
 
+export function snapDateCeil(date: Date, viewMode: GanttViewMode): Date {
+  const floor = snapDate(date, viewMode);
+
+  if (date.getTime() > floor.getTime()) {
+    return addViewUnits(floor, 1, viewMode);
+  }
+
+  return floor;
+}
+
+export function snapEndDate(date: Date, viewMode: GanttViewMode): Date {
+  const periodStart = snapDate(date, viewMode);
+
+  return addDays(addViewUnits(periodStart, 1, viewMode), -1);
+}
+
 export function addViewUnits(
   date: Date,
   amount: number,
@@ -123,6 +139,13 @@ export function ensureMinimumRange(
   end: Date,
   viewMode: GanttViewMode
 ) {
+  if (end < start) {
+    return {
+      start,
+      end: addViewUnits(start, 1, viewMode),
+    };
+  }
+
   if (diffViewUnits(start, end, viewMode) >= 1) {
     return { start, end };
   }

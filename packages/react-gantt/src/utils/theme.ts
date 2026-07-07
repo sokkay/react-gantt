@@ -54,5 +54,6 @@ export function createThemeStyle({
     "--sg-project-bar-progress": theme?.projectBarProgress,
     "--sg-row-hover-bg": theme?.rowHoverBg,
     "--sg-row-selected-bg": theme?.rowSelectedBg,
+    "--sg-font-family": theme?.fontFamily,
   } as React.CSSProperties;
 }

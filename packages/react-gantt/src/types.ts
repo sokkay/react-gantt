@@ -299,6 +299,8 @@ export interface GanttTheme {
   rowHoverBg?: string;
   /** Custom background color for a row when selected. */
   rowSelectedBg?: string;
+  /** Font family for the chart UI. Use `inherit` to adopt the parent site typography. */
+  fontFamily?: string;
 }
 
 /**

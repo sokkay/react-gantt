@@ -221,6 +221,22 @@ Customization:
 - `classNames`
 - `theme`
 
+Theme example:
+
+```tsx
+<GanttChart
+  projects={projects}
+  viewMode="day"
+  theme={{
+    fontFamily: "inherit",
+    background: "#f8fafc",
+    task: "#2563eb",
+  }}
+/>
+```
+
+Pass `fontFamily: "inherit"` to adopt the typography from the host page. Any valid CSS `font-family` value is supported.
+
 ## Development
 
 Install dependencies:

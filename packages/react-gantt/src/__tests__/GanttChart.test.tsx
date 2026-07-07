@@ -220,6 +220,19 @@ describe("GanttChart", () => {
     expect(root.style.getPropertyValue("--sg-sidebar-min-width")).toBe("260px");
   });
 
+  it("applies theme font family overrides", () => {
+    const { container } = render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        theme={{ fontFamily: "inherit" }}
+      />
+    );
+
+    const root = container.querySelector(".sokkay-gantt") as HTMLElement;
+    expect(root.style.getPropertyValue("--sg-font-family")).toBe("inherit");
+  });
+
   it("emits sidebar width changes from the resize handle", () => {
     const onSidebarWidthChange = vi.fn();
     const { container } = render(

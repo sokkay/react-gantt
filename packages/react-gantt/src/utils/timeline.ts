@@ -113,7 +113,7 @@ export function dateRangeToPixels(
   };
 }
 
-function dateToPrecisePixels(
+export function dateToPrecisePixels(
   date: Date,
   timeline: TimelineModel,
   viewMode: GanttViewMode

@@ -127,6 +127,39 @@ describe("timeline utilities", () => {
     expect(range.width).toBeCloseTo(timeline.cellWidth, 5);
   });
 
+  it("fills one week column for division-aligned weekly ranges", () => {
+    const timeline = buildTimeline(
+      [
+        {
+          ...projects[0],
+          tasks: [
+            {
+              ...projects[0].tasks[0],
+              start: normalizeDate("2026-07-06"),
+              end: normalizeDate("2026-07-12"),
+            },
+          ],
+        },
+      ],
+      "week"
+    );
+
+    const range = dateRangeToPixels(
+      normalizeDate("2026-07-06"),
+      normalizeDate("2026-07-12"),
+      timeline,
+      "week"
+    );
+    const weekStart = dateToPixels(
+      normalizeDate("2026-07-06"),
+      timeline,
+      "week"
+    );
+
+    expect(range.left).toBe(weekStart);
+    expect(range.width).toBe(timeline.cellWidth);
+  });
+
   it("applies custom cell widths if provided", () => {
     const timeline = buildTimeline(projects, "week", { week: 200 });
 

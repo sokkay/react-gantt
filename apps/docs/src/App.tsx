@@ -13,6 +13,7 @@ import {
 import "@sokkay/react-gantt/styles.css";
 import { addDays, format } from "date-fns";
 import { useMemo, useState } from "react";
+import { demoCopy, demoLanguages, type DemoCopy, type DemoLanguage } from "./demo-i18n";
 import "./App.css";
 
 const viewModes: GanttViewMode[] = ["day", "week", "month", "quarter", "year"];
@@ -134,9 +135,12 @@ ganttRef.current?.collapseProject("platform");`,
   },
   {
     title: "Translated labels",
-    code: `<GanttChart
+    code: `import { es } from "date-fns/locale";
+
+<GanttChart
   projects={projects}
-  viewMode="day"
+  viewMode="month"
+  locale={es}
   labels={{
     projectHeader: "Proyecto",
     noTaskSelected: "Ninguna tarea seleccionada",
@@ -162,12 +166,16 @@ function updateTask(
   }));
 }
 
-function formatRange(task: NormalizedGanttTask<{ status: string }>) {
-  return `${format(task.start, "MMM d")} - ${format(task.end, "MMM d, yyyy")}`;
+function formatRange(
+  task: NormalizedGanttTask<{ status: string }>,
+  locale: DemoCopy["locale"]
+) {
+  return `${format(task.start, "MMM d", { locale })} - ${format(task.end, "MMM d, yyyy", { locale })}`;
 }
 
 export default function App() {
   const ganttRef = useGanttChart();
+  const [language, setLanguage] = useState<DemoLanguage>("en");
   const [projects, setProjects] = useState(initialProjects);
   const [viewMode, setViewMode] = useState<GanttViewMode>("day");
   const [layoutMode, setLayoutMode] = useState<"compact" | "tree">("tree");
@@ -190,6 +198,8 @@ export default function App() {
     minDate && isValidDateString(minDate) ? minDate : undefined;
   const resolvedMaxDate =
     maxDate && isValidDateString(maxDate) ? maxDate : undefined;
+
+  const copy = demoCopy[language];
 
   const selectedTask = useMemo(
     () =>
@@ -310,7 +320,26 @@ export default function App() {
             <span
               style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
             >
-              Snap:
+              {copy.strings.language}:
+            </span>
+            <div className="view-switcher" aria-label="Language">
+              {demoLanguages.map((value) => (
+                <button
+                  className={value === language ? "is-active" : undefined}
+                  type="button"
+                  key={value}
+                  onClick={() => setLanguage(value)}
+                >
+                  {value.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span
+              style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
+            >
+              {copy.strings.snap}:
             </span>
             <div className="view-switcher" aria-label="Snap to">
               {(["viewMode", "none", "day", "week", "month"] as const).map(
@@ -331,7 +360,7 @@ export default function App() {
             <span
               style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
             >
-              Layout:
+              {copy.strings.layout}:
             </span>
             <div className="view-switcher" aria-label="Layout Mode">
               {(["compact", "tree"] as const).map((mode) => (
@@ -352,13 +381,13 @@ export default function App() {
             type="button"
             onClick={() => ganttRef.current?.scrollToTask("lanes")}
           >
-            Scroll to lane task
+            {copy.strings.scrollToLaneTask}
           </button>
           <button
             type="button"
             onClick={() => ganttRef.current?.toggleProject("platform")}
           >
-            Toggle Platform
+            {copy.strings.togglePlatform}
           </button>
         </div>
       </section>
@@ -380,19 +409,8 @@ export default function App() {
             sidebarWidth={sidebarWidth}
             minSidebarWidth={240}
             onSidebarWidthChange={setSidebarWidth}
-            labels={{
-              projectHeader: "Proyecto",
-              noTaskSelected: "Ninguna tarea seleccionada",
-              clearSelection: "Limpiar",
-              selectAction: "Seleccionar",
-              closeAction: "Cerrar",
-              taskCount: (count) =>
-                `${count} ${count === 1 ? "tarea" : "tareas"}`,
-              reorderProject: (project) => `Reordenar ${project.name}`,
-              collapseProject: (project) => `Colapsar ${project.name}`,
-              expandProject: (project) => `Expandir ${project.name}`,
-              transferTask: (task) => `Mover ${task.name} a otro proyecto`,
-            }}
+            locale={copy.locale}
+            labels={copy.labels}
             onTaskMove={handleMove}
             onTaskResize={handleResize}
             onTaskTransfer={handleTransfer}
@@ -414,7 +432,10 @@ export default function App() {
               <span>
                 {project.name}
                 <small>
-                  {state.taskCount} tasks - {project.meta?.owner}
+                  {copy.strings.projectCellMeta(
+                    state.taskCount,
+                    project.meta?.owner ?? ""
+                  )}
                 </small>
               </span>
             )}
@@ -427,14 +448,14 @@ export default function App() {
             renderTaskTooltip={(task) => (
               <div className="custom-tooltip">
                 <strong>{task.name}</strong>
-                <span>{formatRange(task)}</span>
+                <span>{formatRange(task, copy.locale)}</span>
                 <span>{task.meta?.status}</span>
               </div>
             )}
             renderContextMenu={({ task, actions }) => (
               <>
                 <button type="button" onClick={actions.select}>
-                  Select {task.name}
+                  {copy.strings.selectTask(task.name)}
                 </button>
                 <button
                   type="button"
@@ -449,23 +470,23 @@ export default function App() {
                     actions.close();
                   }}
                 >
-                  Shift +1 day
+                  {copy.strings.shiftOneDay}
                 </button>
               </>
             )}
             renderSelectionToolbar={(task) => (
               <>
                 <strong>{task.name}</strong>
-                <span>{formatRange(task)}</span>
+                <span>{formatRange(task, copy.locale)}</span>
                 <button type="button" onClick={() => setSelectedTaskId(null)}>
-                  Clear
+                  {copy.strings.clear}
                 </button>
               </>
             )}
             renderEmptySelectionToolbar={() => (
               <>
-                <strong>Ninguna tarea seleccionada</strong>
-                <span>Selecciona una tarea para verla aqui.</span>
+                <strong>{copy.strings.noTaskSelectedTitle}</strong>
+                <span>{copy.strings.noTaskSelectedHint}</span>
               </>
             )}
             renderCollapsedProjectSummary={(summary) => (
@@ -474,8 +495,11 @@ export default function App() {
                   {summary.project.name}
                 </strong>
                 <span className="sokkay-gantt__collapsed-summary-meta">
-                  {summary.taskCount} tareas - {format(summary.start, "MMM d")}{" "}
-                  - {format(summary.end, "MMM d")}
+                  {copy.strings.collapsedSummaryMeta(
+                    summary.taskCount,
+                    format(summary.start, "MMM d", { locale: copy.locale }),
+                    format(summary.end, "MMM d", { locale: copy.locale })
+                  )}
                 </span>
               </>
             )}
@@ -483,18 +507,18 @@ export default function App() {
         </div>
 
         <aside className="inspector">
-          <h2>Controlled state</h2>
+          <h2>{copy.strings.controlledState}</h2>
           <dl>
-            <dt>View</dt>
+            <dt>{copy.strings.view}</dt>
             <dd>{viewMode}</dd>
-            <dt>Selected</dt>
-            <dd>{selectedTask?.name ?? "None"}</dd>
-            <dt>Projects</dt>
+            <dt>{copy.strings.selected}</dt>
+            <dd>{selectedTask?.name ?? copy.strings.none}</dd>
+            <dt>{copy.strings.projects}</dt>
             <dd>{projects.length}</dd>
-            <dt>Sidebar</dt>
+            <dt>{copy.strings.sidebar}</dt>
             <dd>{Math.round(sidebarWidth)}px</dd>
           </dl>
-          <h2>Timeline bounds</h2>
+          <h2>{copy.strings.timelineBounds}</h2>
           <div
             style={{
               display: "flex",
@@ -513,7 +537,7 @@ export default function App() {
                 fontWeight: 600,
               }}
             >
-              Min Date:
+              {copy.strings.minDate}:
               <input
                 type="date"
                 value={minDate}
@@ -537,7 +561,7 @@ export default function App() {
                 fontWeight: 600,
               }}
             >
-              Max Date:
+              {copy.strings.maxDate}:
               <input
                 type="date"
                 value={maxDate}
@@ -552,7 +576,7 @@ export default function App() {
               />
             </label>
           </div>
-          <h2>Events</h2>
+          <h2>{copy.strings.events}</h2>
           <ol>
             {eventLog.map((item, index) => (
               <li key={`${item}-${index}`}>{item}</li>
@@ -562,7 +586,7 @@ export default function App() {
       </section>
 
       <section className="code-examples">
-        <h2>Code examples</h2>
+        <h2>{copy.strings.codeExamples}</h2>
         <div className="code-grid">
           {codeExamples.map((example) => (
             <article key={example.title}>

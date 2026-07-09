@@ -184,7 +184,7 @@ Main callbacks:
 - `onProjectReorder({ activeProjectId, overProjectId, projects })`
 - `onProjectCollapseChange(projectId, collapsed, collapsedProjectIds)`
 - `onTaskSelect(task | null)`
-- `onTaskContextMenu({ task, event, actions })`
+- `onTaskContextMenu({ task, segment?, event, actions })`
 
 Behavior props:
 
@@ -236,7 +236,7 @@ Customization:
 
 - `renderTask`
 - `renderTaskTooltip(task, { segment? })`
-- `renderContextMenu`
+- `renderContextMenu({ task, segment?, actions })`
 - `renderSelectionToolbar`
 - `renderEmptySelectionToolbar`
 - `renderProjectCell`

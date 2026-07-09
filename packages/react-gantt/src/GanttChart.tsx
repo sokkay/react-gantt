@@ -33,6 +33,7 @@ import type {
   GanttChartHandle,
   GanttChartProps,
   NormalizedGanttTask,
+  NormalizedGanttTaskSegment,
 } from "./types";
 import { getCollapsedProjectSummary } from "./utils/collapsed-summary";
 import { cx } from "./utils/cx";
@@ -240,7 +241,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
 
   const handleContextMenu = (
     event: React.MouseEvent,
-    task: NormalizedGanttTask<TTaskMeta>
+    task: NormalizedGanttTask<TTaskMeta>,
+    segment?: NormalizedGanttTaskSegment
   ) => {
     event.preventDefault();
     event.stopPropagation();
@@ -248,8 +250,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
       close: closeContextMenu,
       select: () => onTaskSelect?.(task),
     };
-    setContextMenu({ task, x: event.clientX, y: event.clientY });
-    onTaskContextMenu?.({ task, event, actions: nextActions });
+    setContextMenu({ task, segment, x: event.clientX, y: event.clientY });
+    onTaskContextMenu?.({ task, segment, event, actions: nextActions });
   };
 
   return (

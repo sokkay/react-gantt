@@ -737,7 +737,11 @@ export default function App() {
             setSelectedTaskId(task?.id ?? null);
             pushLog(`select ${task?.id ?? "null"}`);
           }}
-          onTaskContextMenu={({ task }) => pushLog(`context ${task.id}`)}
+          onTaskContextMenu={({ task, segment }) =>
+            pushLog(
+              `context ${task.id}${segment ? `:${segment.id}` : ""}`
+            )
+          }
           renderProjectCell={(project, state) => (
             <span>
               {project.name}

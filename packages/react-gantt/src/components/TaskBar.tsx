@@ -73,7 +73,8 @@ function TaskBarSegment<TTaskMeta>({
   onSelect: (task: NormalizedGanttTask<TTaskMeta>) => void;
   onContextMenu: (
     event: React.MouseEvent,
-    task: NormalizedGanttTask<TTaskMeta>
+    task: NormalizedGanttTask<TTaskMeta>,
+    segment?: NormalizedGanttTaskSegment
   ) => void;
   className?: string;
   isInteracting?: boolean;
@@ -182,7 +183,7 @@ function TaskBarSegment<TTaskMeta>({
           event.stopPropagation();
           onSelect(task);
         }}
-        onContextMenu={(event) => onContextMenu(event, task)}
+        onContextMenu={(event) => onContextMenu(event, task, segment)}
       >
         <span
           className="sokkay-gantt__resize sokkay-gantt__resize--start"
@@ -261,7 +262,8 @@ export function TaskBar<TTaskMeta>({
   onSelect: (task: NormalizedGanttTask<TTaskMeta>) => void;
   onContextMenu: (
     event: React.MouseEvent,
-    task: NormalizedGanttTask<TTaskMeta>
+    task: NormalizedGanttTask<TTaskMeta>,
+    segment?: NormalizedGanttTaskSegment
   ) => void;
   className?: string;
   isInteracting?: boolean;

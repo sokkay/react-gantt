@@ -262,6 +262,11 @@ export interface ContextMenuActions {
 export interface TaskContextMenuPayload<TTaskMeta = unknown> {
   /** The task instance that triggered the context menu. */
   task: NormalizedGanttTask<TTaskMeta>;
+  /**
+   * The specific segment that was right-clicked, when the task is segmented.
+   * `undefined` for non-segmented tasks.
+   */
+  segment?: NormalizedGanttTaskSegment;
   /** The native React mouse event. */
   event: React.MouseEvent;
   /** Context actions that can be imperatively triggered. */
@@ -446,6 +451,8 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   /** Custom render function for the context menu of a task. */
   renderContextMenu?: (ctx: {
     task: NormalizedGanttTask<TTaskMeta>;
+    /** Present when the context menu was opened on a specific segment. */
+    segment?: NormalizedGanttTaskSegment;
     actions: ContextMenuActions;
   }) => ReactNode;
   /** Custom render function for the selection toolbar shown when a task is selected. */

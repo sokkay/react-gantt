@@ -147,7 +147,60 @@ describe("GanttChart", () => {
     expect(onTaskContextMenu).toHaveBeenCalledWith(
       expect.objectContaining({
         task: expect.objectContaining({ id: "t1" }),
+        segment: undefined,
         actions: expect.any(Object),
+      })
+    );
+  });
+
+  it("passes the right-clicked segment to context menu callbacks", () => {
+    const segmentedProjects: GanttProject[] = [
+      {
+        id: "p1",
+        name: "Alpha",
+        tasks: [
+          {
+            id: "t1",
+            name: "API",
+            start: "2026-03-02",
+            end: "2026-03-10",
+            segments: [
+              { id: "s1", start: "2026-03-02", end: "2026-03-04" },
+              { id: "s2", start: "2026-03-07", end: "2026-03-10" },
+            ],
+          },
+        ],
+      },
+    ];
+    const onTaskContextMenu = vi.fn();
+    const renderContextMenu = vi.fn(({ task, segment }) => (
+      <button type="button">
+        Copy {task.name}:{segment?.id ?? "none"}
+      </button>
+    ));
+
+    render(
+      <GanttChart
+        projects={segmentedProjects}
+        viewMode="day"
+        onTaskContextMenu={onTaskContextMenu}
+        renderContextMenu={renderContextMenu}
+      />
+    );
+
+    fireEvent.contextMenu(screen.getByTestId("task-t1-segment-s2"));
+    expect(screen.getByText("Copy API:s2")).toBeInTheDocument();
+    expect(onTaskContextMenu).toHaveBeenCalledWith(
+      expect.objectContaining({
+        task: expect.objectContaining({ id: "t1" }),
+        segment: expect.objectContaining({ id: "s2" }),
+        actions: expect.any(Object),
+      })
+    );
+    expect(renderContextMenu).toHaveBeenCalledWith(
+      expect.objectContaining({
+        task: expect.objectContaining({ id: "t1" }),
+        segment: expect.objectContaining({ id: "s2" }),
       })
     );
   });

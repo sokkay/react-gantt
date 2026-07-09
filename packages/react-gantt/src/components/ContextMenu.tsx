@@ -4,10 +4,12 @@ import type {
   GanttChartProps,
   GanttLabels,
   NormalizedGanttTask,
+  NormalizedGanttTaskSegment,
 } from "../types";
 
 export interface ContextMenuState<TTaskMeta> {
   task: NormalizedGanttTask<TTaskMeta>;
+  segment?: NormalizedGanttTaskSegment;
   x: number;
   y: number;
 }
@@ -49,6 +51,7 @@ export function ContextMenu<TTaskMeta>({
       {renderContextMenu ? (
         renderContextMenu({
           task: contextMenu.task,
+          segment: contextMenu.segment,
           actions,
         })
       ) : (

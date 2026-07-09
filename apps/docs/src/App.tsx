@@ -104,6 +104,66 @@ const initialProjects: Array<
   },
 ];
 
+const segmentedProjects: Array<
+  GanttProject<{ owner: string }, { status: string }>
+> = [
+  {
+    id: "segments",
+    name: "Segmented work",
+    meta: { owner: "Ops" },
+    tasks: [
+      {
+        id: "weekday-block",
+        projectId: "segments",
+        name: "Weekday delivery",
+        start: "2026-07-06",
+        end: "2026-07-17",
+        progress: 55,
+        color: "#0d9488",
+        meta: { status: "Weekdays" },
+        segments: [
+          { id: "wd-w1", start: "2026-07-06", end: "2026-07-10" },
+          { id: "wd-w2", start: "2026-07-13", end: "2026-07-17" },
+        ],
+      },
+      {
+        id: "biweekly-review",
+        projectId: "segments",
+        name: "Bi-weekly review",
+        start: "2026-07-03",
+        end: "2026-07-24",
+        progress: 40,
+        color: "#db2777",
+        meta: { status: "Bi-weekly" },
+        segments: [
+          { id: "rev-1", start: "2026-07-03", end: "2026-07-03" },
+          { id: "rev-2", start: "2026-07-17", end: "2026-07-17" },
+          { id: "rev-3", start: "2026-07-24", end: "2026-07-24" },
+        ],
+      },
+      {
+        id: "support-windows",
+        projectId: "segments",
+        name: "Support windows",
+        start: "2026-07-01",
+        end: "2026-07-29",
+        progress: 25,
+        color: "#2563eb",
+        meta: { status: "Periodic" },
+        segments: [
+          { id: "sup-1", start: "2026-07-01", end: "2026-07-02" },
+          { id: "sup-2", start: "2026-07-08", end: "2026-07-09" },
+          { id: "sup-3", start: "2026-07-15", end: "2026-07-16" },
+          { id: "sup-4", start: "2026-07-22", end: "2026-07-23" },
+          { id: "sup-5", start: "2026-07-29", end: "2026-07-29" },
+        ],
+      },
+    ],
+  },
+];
+
+type DemoScenario = "default" | "segmented";
+
 const codeExamples = [
   {
     title: "Basic usage",
@@ -123,6 +183,31 @@ import "@sokkay/react-gantt/styles.css";
   onTaskReorder={({ projectId, tasks }) => updateProjectTasks(projectId, tasks)}
   onTaskSelect={(task) => setSelectedTaskId(task?.id ?? null)}
 />`,
+  },
+  {
+    title: "Segmented tasks",
+    code: `const task = {
+  id: "weekday-block",
+  projectId: "segments",
+  name: "Weekday delivery",
+  start: "2026-07-06",
+  end: "2026-07-17",
+  segments: [
+    { id: "wd-w1", start: "2026-07-06", end: "2026-07-10" },
+    { id: "wd-w2", start: "2026-07-13", end: "2026-07-17" },
+  ],
+};
+
+<GanttChart
+  projects={projects}
+  showSegmentConnectors
+  onTaskMove={({ taskId, start, end, segmentId }) => {
+    // Live updates while dragging (optional segmentId)
+  }}
+  onTaskMoveEnd={({ taskId, start, end, segmentId }) => {
+    // Confirmed range when the pointer is released
+  }}
+/>;`,
   },
   {
     title: "Imperative operations",
@@ -151,8 +236,46 @@ ganttRef.current?.collapseProject("platform");`,
   },
 ];
 
+function envelopeFromSegments(
+  segments: NonNullable<GanttTask<{ status: string }>["segments"]>
+) {
+  const starts = segments.map((segment) => new Date(segment.start).getTime());
+  const ends = segments.map((segment) => new Date(segment.end).getTime());
+  return {
+    start: new Date(Math.min(...starts)),
+    end: new Date(Math.max(...ends)),
+  };
+}
+
+function applyTaskRangeUpdate(
+  task: GanttTask<{ status: string }>,
+  payload: Pick<TaskMovePayload, "start" | "end" | "segmentId">
+): GanttTask<{ status: string }> {
+  if (!payload.segmentId || !task.segments?.length) {
+    return {
+      ...task,
+      start: payload.start,
+      end: payload.end,
+    };
+  }
+
+  const segments = task.segments.map((segment) =>
+    segment.id === payload.segmentId
+      ? { ...segment, start: payload.start, end: payload.end }
+      : segment
+  );
+  const envelope = envelopeFromSegments(segments);
+
+  return {
+    ...task,
+    segments,
+    start: envelope.start,
+    end: envelope.end,
+  };
+}
+
 function updateTask(
-  projects: typeof initialProjects,
+  projects: Array<GanttProject<{ owner: string }, { status: string }>>,
   taskId: string,
   updater: (
     task: GanttTask<{ status: string }>
@@ -176,6 +299,8 @@ function formatRange(
 export default function App() {
   const ganttRef = useGanttChart();
   const [language, setLanguage] = useState<DemoLanguage>("en");
+  const [scenario, setScenario] = useState<DemoScenario>("default");
+  const [showSegmentConnectors, setShowSegmentConnectors] = useState(false);
   const [projects, setProjects] = useState(initialProjects);
   const [viewMode, setViewMode] = useState<GanttViewMode>("day");
   const [layoutMode, setLayoutMode] = useState<"compact" | "tree">("tree");
@@ -213,26 +338,52 @@ export default function App() {
     setEventLog((items) => [message, ...items].slice(0, 6));
   };
 
+  const formatRangePayload = (
+    payload: Pick<TaskMovePayload, "start" | "end" | "taskId" | "segmentId">
+  ) => {
+    const target = payload.segmentId
+      ? `${payload.taskId}/${payload.segmentId}`
+      : payload.taskId;
+    return `${target} -> ${format(payload.start, "yyyy-MM-dd")}..${format(payload.end, "yyyy-MM-dd")}`;
+  };
+
+  const switchScenario = (next: DemoScenario) => {
+    setScenario(next);
+    if (next === "segmented") {
+      setProjects(segmentedProjects);
+      setSelectedTaskId("weekday-block");
+      setShowSegmentConnectors(true);
+    } else {
+      setProjects(initialProjects);
+      setSelectedTaskId("api");
+      setShowSegmentConnectors(false);
+    }
+    setCollapsedProjectIds([]);
+    setEventLog([]);
+  };
+
   const handleMove = (payload: TaskMovePayload) => {
     setProjects((items) =>
-      updateTask(items, payload.taskId, (task) => ({
-        ...task,
-        start: payload.start,
-        end: payload.end,
-      }))
+      updateTask(items, payload.taskId, (task) =>
+        applyTaskRangeUpdate(task, payload)
+      )
     );
-    pushLog(`move ${payload.taskId} -> ${format(payload.start, "yyyy-MM-dd")}`);
   };
 
   const handleResize = (payload: TaskResizePayload) => {
     setProjects((items) =>
-      updateTask(items, payload.taskId, (task) => ({
-        ...task,
-        start: payload.start,
-        end: payload.end,
-      }))
+      updateTask(items, payload.taskId, (task) =>
+        applyTaskRangeUpdate(task, payload)
+      )
     );
-    pushLog(`resize ${payload.taskId} ${payload.edge}`);
+  };
+
+  const handleMoveEnd = (payload: TaskMovePayload) => {
+    pushLog(`move-end ${formatRangePayload(payload)}`);
+  };
+
+  const handleResizeEnd = (payload: TaskResizePayload) => {
+    pushLog(`resize-end ${payload.edge} ${formatRangePayload(payload)}`);
   };
 
   const handleTransfer = (payload: TaskTransferPayload) => {
@@ -375,6 +526,54 @@ export default function App() {
               ))}
             </div>
           </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span
+              style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
+            >
+              {copy.strings.scenario}:
+            </span>
+            <div className="view-switcher" aria-label="Scenario">
+              <button
+                className={scenario === "default" ? "is-active" : undefined}
+                type="button"
+                onClick={() => switchScenario("default")}
+              >
+                {copy.strings.scenarioDefault}
+              </button>
+              <button
+                className={scenario === "segmented" ? "is-active" : undefined}
+                type="button"
+                onClick={() => switchScenario("segmented")}
+              >
+                {copy.strings.scenarioSegmented}
+              </button>
+            </div>
+          </div>
+          {scenario === "segmented" ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span
+                style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
+              >
+                {copy.strings.connectors}:
+              </span>
+              <div className="view-switcher" aria-label="Segment connectors">
+                <button
+                  className={showSegmentConnectors ? "is-active" : undefined}
+                  type="button"
+                  onClick={() => setShowSegmentConnectors(true)}
+                >
+                  on
+                </button>
+                <button
+                  className={!showSegmentConnectors ? "is-active" : undefined}
+                  type="button"
+                  onClick={() => setShowSegmentConnectors(false)}
+                >
+                  off
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
         <div className="docs-actions">
           <button
@@ -402,6 +601,7 @@ export default function App() {
             minDate={resolvedMinDate}
             maxDate={resolvedMaxDate}
             snapTo={snapTo === "viewMode" ? undefined : snapTo}
+            showSegmentConnectors={showSegmentConnectors}
             selectedTaskId={selectedTaskId}
             selectionToolbarMode="static"
             collapsedProjectIds={collapsedProjectIds}
@@ -412,7 +612,9 @@ export default function App() {
             locale={copy.locale}
             labels={copy.labels}
             onTaskMove={handleMove}
+            onTaskMoveEnd={handleMoveEnd}
             onTaskResize={handleResize}
+            onTaskResizeEnd={handleResizeEnd}
             onTaskTransfer={handleTransfer}
             onTaskReorder={handleTaskReorder}
             onProjectReorder={({
@@ -461,11 +663,29 @@ export default function App() {
                   type="button"
                   onClick={() => {
                     setProjects((items) =>
-                      updateTask(items, task.id, (currentTask) => ({
-                        ...currentTask,
-                        start: addDays(new Date(currentTask.start), 1),
-                        end: addDays(new Date(currentTask.end), 1),
-                      }))
+                      updateTask(items, task.id, (currentTask) => {
+                        if (!currentTask.segments?.length) {
+                          return {
+                            ...currentTask,
+                            start: addDays(new Date(currentTask.start), 1),
+                            end: addDays(new Date(currentTask.end), 1),
+                          };
+                        }
+
+                        const segments = currentTask.segments.map((segment) => ({
+                          ...segment,
+                          start: addDays(new Date(segment.start), 1),
+                          end: addDays(new Date(segment.end), 1),
+                        }));
+                        const envelope = envelopeFromSegments(segments);
+
+                        return {
+                          ...currentTask,
+                          segments,
+                          start: envelope.start,
+                          end: envelope.end,
+                        };
+                      })
                     );
                     actions.close();
                   }}
@@ -513,6 +733,8 @@ export default function App() {
             <dd>{viewMode}</dd>
             <dt>{copy.strings.selected}</dt>
             <dd>{selectedTask?.name ?? copy.strings.none}</dd>
+            <dt>{copy.strings.segments}</dt>
+            <dd>{selectedTask?.segments?.length ?? 0}</dd>
             <dt>{copy.strings.projects}</dt>
             <dd>{projects.length}</dd>
             <dt>{copy.strings.sidebar}</dt>

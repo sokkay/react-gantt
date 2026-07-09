@@ -4,6 +4,7 @@ import {
   diffViewUnits,
   ensureMinimumRange,
   normalizeDate,
+  normalizeProjects,
   shiftRangeByUnits,
   snapDate,
 } from "../utils/dates";
@@ -40,5 +41,34 @@ describe("date utilities", () => {
     const range = ensureMinimumRange(start, end, "day");
 
     expect(diffViewUnits(range.start, range.end, "day")).toBe(1);
+  });
+
+  it("normalizes task segments and derives the envelope from them", () => {
+    const [project] = normalizeProjects([
+      {
+        id: "p1",
+        name: "Platform",
+        tasks: [
+          {
+            id: "t1",
+            projectId: "p1",
+            name: "Weekdays",
+            start: "2026-01-01",
+            end: "2026-01-01",
+            segments: [
+              { id: "s2", start: "2026-07-13", end: "2026-07-17" },
+              { id: "s1", start: "2026-07-06", end: "2026-07-10" },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    const task = project.tasks[0];
+    expect(task.segments).toHaveLength(2);
+    expect(task.segments?.[0].id).toBe("s1");
+    expect(task.segments?.[1].id).toBe("s2");
+    expect(task.start).toEqual(normalizeDate("2026-07-06"));
+    expect(task.end).toEqual(normalizeDate("2026-07-17"));
   });
 });

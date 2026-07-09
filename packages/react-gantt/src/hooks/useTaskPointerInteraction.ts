@@ -1,11 +1,13 @@
 import type * as React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AUTO_SCROLL_EDGE, AUTO_SCROLL_STEP } from "../constants";
 import type { InteractionKind, PointerInteraction } from "../internal-types";
 import type {
   GanttChartProps,
   GanttViewMode,
   NormalizedGanttTask,
+  TaskMovePayload,
+  TaskResizePayload,
 } from "../types";
 import { rangeFromPixels } from "../utils/range-from-pixels";
 import type { TimelineModel } from "../utils/timeline";
@@ -16,12 +18,18 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
   viewMode,
   snapTo,
   onTaskMove,
+  onTaskMoveEnd,
   onTaskResize,
+  onTaskResizeEnd,
   minDate,
   maxDate,
 }: Pick<
   GanttChartProps<TProjectMeta, TTaskMeta>,
-  "snapTo" | "onTaskMove" | "onTaskResize"
+  | "snapTo"
+  | "onTaskMove"
+  | "onTaskMoveEnd"
+  | "onTaskResize"
+  | "onTaskResizeEnd"
 > & {
   rootRef: React.RefObject<HTMLDivElement | null>;
   timeline: TimelineModel;
@@ -31,6 +39,31 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
 }) {
   const [interaction, setInteraction] =
     useState<PointerInteraction<TTaskMeta> | null>(null);
+
+  // Keep volatile values in refs so the window listeners stay mounted for the
+  // whole drag. Re-binding on every parent render (new callback identities /
+  // timeline) can drop the pointerup listener and leave the task stuck.
+  const timelineRef = useRef(timeline);
+  const viewModeRef = useRef(viewMode);
+  const snapToRef = useRef(snapTo);
+  const onTaskMoveRef = useRef(onTaskMove);
+  const onTaskMoveEndRef = useRef(onTaskMoveEnd);
+  const onTaskResizeRef = useRef(onTaskResize);
+  const onTaskResizeEndRef = useRef(onTaskResizeEnd);
+  const minDateRef = useRef(minDate);
+  const maxDateRef = useRef(maxDate);
+  const lastMovePayloadRef = useRef<TaskMovePayload | null>(null);
+  const lastResizePayloadRef = useRef<TaskResizePayload | null>(null);
+
+  timelineRef.current = timeline;
+  viewModeRef.current = viewMode;
+  snapToRef.current = snapTo;
+  onTaskMoveRef.current = onTaskMove;
+  onTaskMoveEndRef.current = onTaskMoveEnd;
+  onTaskResizeRef.current = onTaskResize;
+  onTaskResizeEndRef.current = onTaskResizeEnd;
+  minDateRef.current = minDate;
+  maxDateRef.current = maxDate;
 
   const autoScroll = useCallback(
     (event: PointerEvent) => {
@@ -62,79 +95,102 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
       return;
     }
 
-    const handleMove = (event: PointerEvent) => {
-      autoScroll(event);
-      const range = rangeFromPixels(
+    lastMovePayloadRef.current = null;
+    lastResizePayloadRef.current = null;
+
+    const computeRange = (clientX: number) => {
+      const currentViewMode = viewModeRef.current;
+      return rangeFromPixels(
         interaction,
-        event.clientX - interaction.originX,
-        timeline,
-        viewMode,
-        snapTo ?? viewMode,
-        minDate,
-        maxDate
+        clientX - interaction.originX,
+        timelineRef.current,
+        currentViewMode,
+        snapToRef.current ?? currentViewMode,
+        minDateRef.current,
+        maxDateRef.current
       );
-
-      if (interaction.kind === "move") {
-        onTaskMove?.({
-          taskId: interaction.task.id,
-          projectId: interaction.task.projectId,
-          ...range,
-        });
-        return;
-      }
-
-      if (interaction.kind === "resize-start") {
-        onTaskResize?.({
-          taskId: interaction.task.id,
-          projectId: interaction.task.projectId,
-          edge: "start",
-          ...range,
-        });
-        return;
-      }
-
-      onTaskResize?.({
-        taskId: interaction.task.id,
-        projectId: interaction.task.projectId,
-        edge: "end",
-        ...range,
-      });
     };
 
-    const handleUp = () => setInteraction(null);
+    const handleMove = (event: PointerEvent) => {
+      autoScroll(event);
+      const range = computeRange(event.clientX);
+      const payload = {
+        taskId: interaction.task.id,
+        projectId: interaction.task.projectId,
+        segmentId: interaction.segmentId,
+        ...range,
+      };
+
+      if (interaction.kind === "move") {
+        lastMovePayloadRef.current = payload;
+        onTaskMoveRef.current?.(payload);
+        return;
+      }
+
+      const resizePayload: TaskResizePayload = {
+        ...payload,
+        edge: interaction.kind === "resize-start" ? "start" : "end",
+      };
+      lastResizePayloadRef.current = resizePayload;
+      onTaskResizeRef.current?.(resizePayload);
+    };
+
+    const handleUp = (event: PointerEvent) => {
+      const range = computeRange(event.clientX);
+      const base = {
+        taskId: interaction.task.id,
+        projectId: interaction.task.projectId,
+        segmentId: interaction.segmentId,
+        ...range,
+      };
+
+      if (interaction.kind === "move") {
+        onTaskMoveEndRef.current?.(lastMovePayloadRef.current ?? base);
+      } else {
+        onTaskResizeEndRef.current?.(
+          lastResizePayloadRef.current ?? {
+            ...base,
+            edge: interaction.kind === "resize-start" ? "start" : "end",
+          }
+        );
+      }
+
+      lastMovePayloadRef.current = null;
+      lastResizePayloadRef.current = null;
+      setInteraction(null);
+    };
 
     window.addEventListener("pointermove", handleMove);
-    window.addEventListener("pointerup", handleUp, { once: true });
+    window.addEventListener("pointerup", handleUp);
+    window.addEventListener("pointercancel", handleUp);
 
     return () => {
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
+      window.removeEventListener("pointercancel", handleUp);
     };
-  }, [
-    autoScroll,
-    interaction,
-    onTaskMove,
-    onTaskResize,
-    snapTo,
-    timeline,
-    viewMode,
-    minDate,
-    maxDate,
-  ]);
+  }, [autoScroll, interaction]);
 
   const handlePointerStart = (
     event: React.PointerEvent,
     kind: InteractionKind,
-    task: NormalizedGanttTask<TTaskMeta>
+    task: NormalizedGanttTask<TTaskMeta>,
+    segmentId?: string
   ) => {
     event.preventDefault();
     event.stopPropagation();
+
+    const segment = segmentId
+      ? task.segments?.find((item) => item.id === segmentId)
+      : undefined;
+
     setInteraction({
       kind,
       task,
+      segmentId,
       originX: event.clientX,
-      start: task.start,
-      end: task.end,
+      start: segment?.start ?? task.start,
+      end: segment?.end ?? task.end,
     });
   };
 

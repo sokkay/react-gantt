@@ -16,6 +16,8 @@ Initial interactive base:
 - Controlled task selection
 - Horizontal task drag with `onTaskMove`
 - Start/end resize with `onTaskResize`
+- Optional task `segments` for non-contiguous ranges (weekends skipped, periodic blocks)
+- Optional dashed connectors between segments via `showSegmentConnectors`
 - Automatic task lanes when ranges overlap inside a project
 - Task reorder within a project with `onTaskReorder`
 - Custom task rendering, tooltip, context menu, selection toolbar and project cell
@@ -151,12 +153,20 @@ interface GanttProject<TMeta = unknown> {
   meta?: TMeta;
 }
 
+interface GanttTaskSegment {
+  id: string;
+  start: Date | string | number;
+  end: Date | string | number;
+}
+
 interface GanttTask<TMeta = unknown> {
   id: string;
   projectId: string;
   name: string;
   start: Date | string | number;
   end: Date | string | number;
+  /** Optional non-contiguous ranges; when present, each segment is rendered and edited independently. */
+  segments?: GanttTaskSegment[];
   progress?: number;
   color?: string;
   meta?: TMeta;
@@ -165,8 +175,10 @@ interface GanttTask<TMeta = unknown> {
 
 Main callbacks:
 
-- `onTaskMove({ taskId, projectId, start, end })`
-- `onTaskResize({ taskId, projectId, edge, start, end })`
+- `onTaskMove({ taskId, projectId, start, end, segmentId? })`
+- `onTaskMoveEnd({ taskId, projectId, start, end, segmentId? })`
+- `onTaskResize({ taskId, projectId, edge, start, end, segmentId? })`
+- `onTaskResizeEnd({ taskId, projectId, edge, start, end, segmentId? })`
 - `onTaskTransfer({ taskId, fromProjectId, toProjectId, index })`
 - `onTaskReorder({ taskId, projectId, fromIndex, toIndex, tasks })`
 - `onProjectReorder({ activeProjectId, overProjectId, projects })`
@@ -182,6 +194,7 @@ Behavior props:
 - `sidebarWidth` / `minSidebarWidth`: fixed project sidebar sizing
 - `onSidebarWidthChange`: receives sidebar resize changes from the drag handle
 - `snapTo`: `day`, `week`, `month`, `quarter`, `year` or `none`
+- `showSegmentConnectors`: draw dashed lines between consecutive task segments
 - `virtualized`
 - `overscan`
 

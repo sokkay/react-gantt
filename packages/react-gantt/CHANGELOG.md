@@ -1,5 +1,12 @@
 # @sokkay/react-gantt
 
+## 0.4.1
+
+### Patch Changes
+
+- fix: only fire `onTaskMoveEnd` / `onTaskResizeEnd` after a real drag or resize (ignore plain clicks and sub-threshold pointer jitter)
+- fix: pass `{ segment }` to `renderTaskTooltip` for segmented tasks (`segment` is `undefined` for single-bar tasks)
+
 ## 0.4.0
 
 ### Minor Changes

@@ -216,7 +216,7 @@ function TaskBarSegment<TTaskMeta>({
           role="tooltip"
         >
           {renderTaskTooltip ? (
-            renderTaskTooltip(task)
+            renderTaskTooltip(task, { segment })
           ) : (
             <DefaultTooltip task={task} segment={segment} />
           )}

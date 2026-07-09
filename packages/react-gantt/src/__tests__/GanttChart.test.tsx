@@ -60,6 +60,43 @@ describe("GanttChart", () => {
     expect(await screen.findByText("Tooltip for API")).toBeInTheDocument();
   });
 
+  it("passes the hovered segment to custom tooltips", async () => {
+    const segmentedProjects: GanttProject[] = [
+      {
+        id: "p1",
+        name: "Platform",
+        tasks: [
+          {
+            id: "t1",
+            projectId: "p1",
+            name: "Weekdays",
+            start: "2026-07-06",
+            end: "2026-07-17",
+            segments: [
+              { id: "s1", start: "2026-07-06", end: "2026-07-10" },
+              { id: "s2", start: "2026-07-13", end: "2026-07-17" },
+            ],
+          },
+        ],
+      },
+    ];
+
+    render(
+      <GanttChart
+        projects={segmentedProjects}
+        viewMode="day"
+        renderTaskTooltip={(task, { segment }) => (
+          <span>
+            {task.name}:{segment?.id ?? "none"}
+          </span>
+        )}
+      />
+    );
+
+    fireEvent.pointerEnter(screen.getByTestId("task-t1-segment-s2"));
+    expect(await screen.findByText("Weekdays:s2")).toBeInTheDocument();
+  });
+
   it("renders a custom context menu and invokes callback payload", () => {
     const onTaskContextMenu = vi.fn();
     render(

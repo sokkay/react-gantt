@@ -439,7 +439,10 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
     state: { selected: boolean }
   ) => ReactNode;
   /** Custom render function for rendering hover tooltips on tasks. */
-  renderTaskTooltip?: (task: NormalizedGanttTask<TTaskMeta>) => ReactNode;
+  renderTaskTooltip?: (
+    task: NormalizedGanttTask<TTaskMeta>,
+    state: { segment?: NormalizedGanttTaskSegment }
+  ) => ReactNode;
   /** Custom render function for the context menu of a task. */
   renderContextMenu?: (ctx: {
     task: NormalizedGanttTask<TTaskMeta>;

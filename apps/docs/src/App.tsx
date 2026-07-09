@@ -647,13 +647,20 @@ export default function App() {
                 <small>{task.progress ?? 0}%</small>
               </span>
             )}
-            renderTaskTooltip={(task) => (
-              <div className="custom-tooltip">
-                <strong>{task.name}</strong>
-                <span>{formatRange(task, copy.locale)}</span>
-                <span>{task.meta?.status}</span>
-              </div>
-            )}
+            renderTaskTooltip={(task, { segment }) => {
+              const start = segment?.start ?? task.start;
+              const end = segment?.end ?? task.end;
+              return (
+                <div className="custom-tooltip">
+                  <strong>{task.name}</strong>
+                  <span>
+                    {format(start, "MMM d", { locale: copy.locale })} -{" "}
+                    {format(end, "MMM d, yyyy", { locale: copy.locale })}
+                  </span>
+                  <span>{task.meta?.status}</span>
+                </div>
+              );
+            }}
             renderContextMenu={({ task, actions }) => (
               <>
                 <button type="button" onClick={actions.select}>

@@ -235,7 +235,7 @@ import { es } from "date-fns/locale";
 Customization:
 
 - `renderTask`
-- `renderTaskTooltip`
+- `renderTaskTooltip(task, { segment? })`
 - `renderContextMenu`
 - `renderSelectionToolbar`
 - `renderEmptySelectionToolbar`

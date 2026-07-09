@@ -222,7 +222,7 @@ Labels:
 Customization:
 
 - `renderTask`
-- `renderTaskTooltip`
+- `renderTaskTooltip(task, { segment? })`
 - `renderContextMenu`
 - `renderSelectionToolbar`
 - `renderEmptySelectionToolbar`

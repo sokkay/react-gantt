@@ -27,15 +27,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          registry-url: 'https://registry.npmjs.org'
+          # Node 22.14+ / npm 11.5.1+ required for npm Trusted Publishing (OIDC).
+          # Do NOT set registry-url here: it writes a placeholder NODE_AUTH_TOKEN
+          # into .npmrc and blocks the OIDC token exchange (surfaces as E404 on publish).
+          node-version: 22.14.0
           cache: 'pnpm'
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Upgrade npm
         run: npm install -g npm@latest
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets

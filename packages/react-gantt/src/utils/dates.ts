@@ -44,12 +44,39 @@ export function normalizeProjects<TProjectMeta, TTaskMeta>(
 ): Array<NormalizedGanttProject<TProjectMeta, TTaskMeta>> {
   return projects.map((project) => ({
     ...project,
-    tasks: project.tasks.map((task) => ({
-      ...task,
-      projectId: task.projectId || project.id,
-      start: normalizeDate(task.start),
-      end: normalizeDate(task.end),
-    })),
+    tasks: project.tasks.map((task) => {
+      const projectId = task.projectId || project.id;
+
+      if (!task.segments?.length) {
+        return {
+          ...task,
+          projectId,
+          start: normalizeDate(task.start),
+          end: normalizeDate(task.end),
+          segments: undefined,
+        };
+      }
+
+      const segments = [...task.segments]
+        .map((segment) => ({
+          id: segment.id,
+          start: normalizeDate(segment.start),
+          end: normalizeDate(segment.end),
+        }))
+        .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+      return {
+        ...task,
+        projectId,
+        start: segments[0].start,
+        end: segments.reduce(
+          (latest, segment) =>
+            segment.end > latest ? segment.end : latest,
+          segments[0].end
+        ),
+        segments,
+      };
+    }),
   }));
 }
 
@@ -70,8 +97,11 @@ export function snapDate(date: Date, viewMode: GanttViewMode): Date {
 
 export function snapDateCeil(date: Date, viewMode: GanttViewMode): Date {
   const floor = snapDate(date, viewMode);
+  // Treat near-exact period starts as already snapped to avoid a 1-unit jump
+  // from floating-point noise just above the floor.
+  const EPS_MS = 1;
 
-  if (date.getTime() > floor.getTime()) {
+  if (date.getTime() > floor.getTime() + EPS_MS) {
     return addViewUnits(floor, 1, viewMode);
   }
 

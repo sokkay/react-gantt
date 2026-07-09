@@ -35,6 +35,11 @@ export interface DemoCopy {
     events: string;
     codeExamples: string;
     tasksLabel: string;
+    scenario: string;
+    scenarioDefault: string;
+    scenarioSegmented: string;
+    segments: string;
+    connectors: string;
   };
 }
 
@@ -95,6 +100,11 @@ export const demoCopy: Record<DemoLanguage, DemoCopy> = {
       events: "Events",
       codeExamples: "Code examples",
       tasksLabel: "tasks",
+      scenario: "Scenario",
+      scenarioDefault: "Default",
+      scenarioSegmented: "Segmented",
+      segments: "Segments",
+      connectors: "Connectors",
     },
   },
   es: {
@@ -127,6 +137,11 @@ export const demoCopy: Record<DemoLanguage, DemoCopy> = {
       events: "Eventos",
       codeExamples: "Ejemplos de codigo",
       tasksLabel: "tareas",
+      scenario: "Escenario",
+      scenarioDefault: "Default",
+      scenarioSegmented: "Segmentadas",
+      segments: "Segmentos",
+      connectors: "Conectores",
     },
   },
 };

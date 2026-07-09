@@ -5,7 +5,6 @@ import {
   diffViewUnits,
   ensureMinimumRange,
   snapDate,
-  snapDateCeil,
   snapEndDate,
 } from "./dates";
 import {
@@ -124,7 +123,7 @@ export function rangeFromPixels<TTaskMeta>(
         deltaPixels,
         timeline,
         viewMode,
-        deltaPixels >= 0 ? "ceil" : "floor"
+        "round"
       );
       const res = ensureMinimumTimelineRange(
         snappedStart,
@@ -139,7 +138,7 @@ export function rangeFromPixels<TTaskMeta>(
         deltaPixels,
         timeline,
         viewMode,
-        deltaPixels >= 0 ? "ceil" : "floor"
+        "round"
       );
       const res = ensureMinimumTimelineRange(
         interaction.start,
@@ -167,13 +166,12 @@ export function rangeFromPixels<TTaskMeta>(
       start = res.start;
       end = res.end;
     } else if (interaction.kind === "resize-start") {
-      const rawStart = new Date(
-        interaction.start.getTime() + deltaMilliseconds
+      const unitMs = MS_PER_UNIT[snapTo];
+      const units = Math.round(deltaMilliseconds / unitMs);
+      const snappedStart = snapDate(
+        addViewUnits(interaction.start, units, snapTo),
+        snapTo
       );
-      const snappedStart =
-        deltaPixels >= 0
-          ? snapDateCeil(rawStart, snapTo)
-          : snapDate(rawStart, snapTo);
       const res = ensureMinimumRange(
         snappedStart,
         interaction.end,
@@ -182,7 +180,9 @@ export function rangeFromPixels<TTaskMeta>(
       start = res.start;
       end = res.end;
     } else {
-      const rawEnd = new Date(interaction.end.getTime() + deltaMilliseconds);
+      const unitMs = MS_PER_UNIT[snapTo];
+      const units = Math.round(deltaMilliseconds / unitMs);
+      const rawEnd = addViewUnits(interaction.end, units, snapTo);
       const res = ensureMinimumRange(
         interaction.start,
         snapEndDate(rawEnd, snapTo),

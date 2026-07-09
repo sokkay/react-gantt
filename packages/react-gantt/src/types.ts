@@ -25,6 +25,19 @@ export type GanttCellWidths = Partial<Record<GanttViewMode, number>>;
 export type GanttSelectionToolbarMode = "auto" | "static" | "hidden";
 
 /**
+ * A contiguous date range that belongs to a segmented task.
+ * When `segments` is present on a task, each entry is rendered and edited independently.
+ */
+export interface GanttTaskSegment {
+  /** Unique identifier for the segment within its task. */
+  id: string;
+  /** The start date of the segment (Date object, ISO string, or timestamp). */
+  start: GanttDateInput;
+  /** The end date of the segment (Date object, ISO string, or timestamp). */
+  end: GanttDateInput;
+}
+
+/**
  * Represents a user task in the Gantt chart.
  */
 export interface GanttTask<TMeta = unknown> {
@@ -34,16 +47,41 @@ export interface GanttTask<TMeta = unknown> {
   projectId: string;
   /** The display name of the task. */
   name: string;
-  /** The start date of the task (Date object, ISO string, or timestamp). */
+  /**
+   * The start date of the task (Date object, ISO string, or timestamp).
+   * When `segments` is provided, this is treated as the envelope and may be
+   * derived from the earliest segment start during normalization.
+   */
   start: GanttDateInput;
-  /** The end date of the task (Date object, ISO string, or timestamp). */
+  /**
+   * The end date of the task (Date object, ISO string, or timestamp).
+   * When `segments` is provided, this is treated as the envelope and may be
+   * derived from the latest segment end during normalization.
+   */
   end: GanttDateInput;
+  /**
+   * Optional non-contiguous ranges for the same logical task.
+   * When present and non-empty, segments are the visual/editable source of truth.
+   */
+  segments?: GanttTaskSegment[];
   /** Optional progress percentage (0 to 100). */
   progress?: number;
   /** Optional custom color code (e.g. Hex, RGB, HSL) for the task bar. */
   color?: string;
   /** Custom metadata for application-specific payload. */
   meta?: TMeta;
+}
+
+/**
+ * Internal representation of a task segment with dates pre-normalized to Date objects.
+ */
+export interface NormalizedGanttTaskSegment {
+  /** Unique identifier for the segment within its task. */
+  id: string;
+  /** The normalized start date. */
+  start: Date;
+  /** The normalized end date. */
+  end: Date;
 }
 
 /**
@@ -67,12 +105,14 @@ export interface GanttProject<TMeta = unknown, TTaskMeta = unknown> {
  */
 export interface NormalizedGanttTask<TMeta = unknown> extends Omit<
   GanttTask<TMeta>,
-  "start" | "end"
+  "start" | "end" | "segments"
 > {
-  /** The normalized start date. */
+  /** The normalized start date (envelope when segments exist). */
   start: Date;
-  /** The normalized end date. */
+  /** The normalized end date (envelope when segments exist). */
   end: Date;
+  /** Normalized non-contiguous ranges, when the task is segmented. */
+  segments?: NormalizedGanttTaskSegment[];
 }
 
 /**
@@ -149,6 +189,8 @@ export interface TaskMovePayload {
   start: Date;
   /** The new end date. */
   end: Date;
+  /** Present when a specific segment of a segmented task was moved. */
+  segmentId?: string;
 }
 
 /**
@@ -250,6 +292,8 @@ export interface GanttClassNames {
   task?: string;
   /** Custom class name applied to the active selected task bar. */
   selectedTask?: string;
+  /** Custom class name for dashed connectors between task segments. */
+  segmentConnector?: string;
   /** Custom class name for the collapsed summary preview bars. */
   collapsedSummary?: string;
 }
@@ -326,6 +370,11 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   defaultCollapsedProjectIds?: string[];
   /** Specifies date alignment or snapping behavior during moves/resizes. Defaults to viewMode. */
   snapTo?: GanttViewMode | "none";
+  /**
+   * When true, draws a dashed connector between consecutive segments of the
+   * same task. Off by default. Only affects tasks that define `segments`.
+   */
+  showSegmentConnectors?: boolean;
   /** Custom cell widths (in pixels) for columns in different view modes. */
   customCellWidths?: GanttCellWidths;
   /** Enables row virtualization to handle large datasets efficiently. */
@@ -354,8 +403,18 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   renderSidebarTaskCell?: (task: NormalizedGanttTask<TTaskMeta>) => ReactNode;
   /** Event callback triggered when a task is moved (dragged horizontally). */
   onTaskMove?: (payload: TaskMovePayload) => void;
+  /**
+   * Event callback triggered once when a horizontal move interaction ends
+   * (pointer up). Includes optional `segmentId` for segmented tasks.
+   */
+  onTaskMoveEnd?: (payload: TaskMovePayload) => void;
   /** Event callback triggered when a task is resized (start or end edge dragged). */
   onTaskResize?: (payload: TaskResizePayload) => void;
+  /**
+   * Event callback triggered once when a resize interaction ends (pointer up).
+   * Includes optional `segmentId` for segmented tasks.
+   */
+  onTaskResizeEnd?: (payload: TaskResizePayload) => void;
   /** Event callback triggered when a task is transferred between projects. */
   onTaskTransfer?: (payload: TaskTransferPayload) => void;
   /** Event callback triggered when tasks are reordered inside their project. */
@@ -380,7 +439,10 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
     state: { selected: boolean }
   ) => ReactNode;
   /** Custom render function for rendering hover tooltips on tasks. */
-  renderTaskTooltip?: (task: NormalizedGanttTask<TTaskMeta>) => ReactNode;
+  renderTaskTooltip?: (
+    task: NormalizedGanttTask<TTaskMeta>,
+    state: { segment?: NormalizedGanttTaskSegment }
+  ) => ReactNode;
   /** Custom render function for the context menu of a task. */
   renderContextMenu?: (ctx: {
     task: NormalizedGanttTask<TTaskMeta>;

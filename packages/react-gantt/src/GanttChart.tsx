@@ -63,9 +63,12 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     minDate,
     maxDate,
     layoutMode = "compact",
+    showSegmentConnectors = false,
     renderSidebarTaskCell,
     onTaskMove,
+    onTaskMoveEnd,
     onTaskResize,
+    onTaskResizeEnd,
     onTaskTransfer,
     onTaskReorder,
     onProjectReorder,
@@ -160,7 +163,9 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     viewMode,
     snapTo,
     onTaskMove,
+    onTaskMoveEnd,
     onTaskResize,
+    onTaskResizeEnd,
     minDate: normalizedMinDate,
     maxDate: normalizedMaxDate,
   });
@@ -460,6 +465,13 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                               isInteracting={
                                 activeInteraction?.task.id === task.id
                               }
+                              interactingSegmentId={
+                                activeInteraction?.task.id === task.id
+                                  ? activeInteraction.segmentId
+                                  : undefined
+                              }
+                              showSegmentConnectors={showSegmentConnectors}
+                              connectorClassName={classNames?.segmentConnector}
                               timeline={timeline}
                               viewMode={viewMode}
                               renderTask={renderTask}
@@ -512,6 +524,13 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                         isInteracting={
                           activeInteraction?.task.id === row.task.id
                         }
+                        interactingSegmentId={
+                          activeInteraction?.task.id === row.task.id
+                            ? activeInteraction.segmentId
+                            : undefined
+                        }
+                        showSegmentConnectors={showSegmentConnectors}
+                        connectorClassName={classNames?.segmentConnector}
                         timeline={timeline}
                         viewMode={viewMode}
                         renderTask={renderTask}

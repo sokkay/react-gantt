@@ -19,8 +19,37 @@ export interface LayoutOptions {
   laneGap: number;
 }
 
+function rangesOverlap(
+  aStart: Date,
+  aEnd: Date,
+  bStart: Date,
+  bEnd: Date
+) {
+  return aStart < bEnd && aEnd > bStart;
+}
+
+function taskRanges(task: NormalizedGanttTask) {
+  if (task.segments?.length) {
+    return task.segments.map((segment) => ({
+      start: segment.start,
+      end: segment.end,
+    }));
+  }
+
+  return [{ start: task.start, end: task.end }];
+}
+
 function overlaps(a: NormalizedGanttTask, b: NormalizedGanttTask) {
-  return a.start < b.end && a.end > b.start;
+  // Segmented tasks only collide when at least one concrete segment overlaps.
+  // Using the envelope would force separate lanes across weekend/periodic gaps.
+  const aRanges = taskRanges(a);
+  const bRanges = taskRanges(b);
+
+  return aRanges.some((aRange) =>
+    bRanges.some((bRange) =>
+      rangesOverlap(aRange.start, aRange.end, bRange.start, bRange.end)
+    )
+  );
 }
 
 export function buildTaskLanes<TTaskMeta>(

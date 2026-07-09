@@ -66,12 +66,15 @@ function snapCellIndexOnTimelineGrid(
   }
 
   const rawIndex = pixels / timeline.cellWidth;
+  // Tiny epsilon avoids ceil/floor jumping an extra cell when floating-point
+  // noise lands just past/before an exact boundary (e.g. 2.0000000002).
+  const EPS = 1e-6;
 
   let index =
     preference === "floor"
-      ? Math.floor(rawIndex)
+      ? Math.floor(rawIndex + EPS)
       : preference === "ceil"
-        ? Math.ceil(rawIndex)
+        ? Math.ceil(rawIndex - EPS)
         : Math.round(rawIndex);
 
   return Math.max(0, Math.min(index, timeline.cells.length - 1));

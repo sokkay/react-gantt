@@ -60,6 +60,43 @@ describe("GanttChart", () => {
     expect(await screen.findByText("Tooltip for API")).toBeInTheDocument();
   });
 
+  it("passes the hovered segment to custom tooltips", async () => {
+    const segmentedProjects: GanttProject[] = [
+      {
+        id: "p1",
+        name: "Platform",
+        tasks: [
+          {
+            id: "t1",
+            projectId: "p1",
+            name: "Weekdays",
+            start: "2026-07-06",
+            end: "2026-07-17",
+            segments: [
+              { id: "s1", start: "2026-07-06", end: "2026-07-10" },
+              { id: "s2", start: "2026-07-13", end: "2026-07-17" },
+            ],
+          },
+        ],
+      },
+    ];
+
+    render(
+      <GanttChart
+        projects={segmentedProjects}
+        viewMode="day"
+        renderTaskTooltip={(task, { segment }) => (
+          <span>
+            {task.name}:{segment?.id ?? "none"}
+          </span>
+        )}
+      />
+    );
+
+    fireEvent.pointerEnter(screen.getByTestId("task-t1-segment-s2"));
+    expect(await screen.findByText("Weekdays:s2")).toBeInTheDocument();
+  });
+
   it("renders a custom context menu and invokes callback payload", () => {
     const onTaskContextMenu = vi.fn();
     render(
@@ -104,13 +141,17 @@ describe("GanttChart", () => {
 
   it("emits move and resize payloads with dates", () => {
     const onTaskMove = vi.fn();
+    const onTaskMoveEnd = vi.fn();
     const onTaskResize = vi.fn();
+    const onTaskResizeEnd = vi.fn();
     render(
       <GanttChart
         projects={projects}
         viewMode="day"
         onTaskMove={onTaskMove}
+        onTaskMoveEnd={onTaskMoveEnd}
         onTaskResize={onTaskResize}
+        onTaskResizeEnd={onTaskResizeEnd}
       />
     );
 
@@ -120,6 +161,15 @@ describe("GanttChart", () => {
     fireEvent.pointerUp(window);
 
     expect(onTaskMove).toHaveBeenCalledWith(
+      expect.objectContaining({
+        taskId: "t1",
+        projectId: "p1",
+        start: expect.any(Date),
+        end: expect.any(Date),
+      })
+    );
+    expect(onTaskMoveEnd).toHaveBeenCalledTimes(1);
+    expect(onTaskMoveEnd).toHaveBeenCalledWith(
       expect.objectContaining({
         taskId: "t1",
         projectId: "p1",
@@ -138,6 +188,194 @@ describe("GanttChart", () => {
     expect(onTaskResize).toHaveBeenCalledWith(
       expect.objectContaining({
         taskId: "t1",
+        edge: "end",
+        end: expect.any(Date),
+      })
+    );
+    expect(onTaskResizeEnd).toHaveBeenCalledTimes(1);
+    expect(onTaskResizeEnd).toHaveBeenCalledWith(
+      expect.objectContaining({
+        taskId: "t1",
+        edge: "end",
+        end: expect.any(Date),
+      })
+    );
+  });
+
+  it("does not emit end callbacks on a plain click without drag", () => {
+    const onTaskMove = vi.fn();
+    const onTaskMoveEnd = vi.fn();
+    const onTaskResize = vi.fn();
+    const onTaskResizeEnd = vi.fn();
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        onTaskMove={onTaskMove}
+        onTaskMoveEnd={onTaskMoveEnd}
+        onTaskResize={onTaskResize}
+        onTaskResizeEnd={onTaskResizeEnd}
+      />
+    );
+
+    const task = screen.getByTestId("task-t1");
+    fireEvent.pointerDown(task, { clientX: 100 });
+    fireEvent.pointerUp(window);
+
+    expect(onTaskMove).not.toHaveBeenCalled();
+    expect(onTaskMoveEnd).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(
+      task.querySelector(".sokkay-gantt__resize--end") as Element,
+      { clientX: 100 }
+    );
+    fireEvent.pointerUp(window);
+
+    expect(onTaskResize).not.toHaveBeenCalled();
+    expect(onTaskResizeEnd).not.toHaveBeenCalled();
+  });
+
+  it("renders segmented tasks as independent bars", () => {
+    const segmentedProjects: GanttProject[] = [
+      {
+        id: "p1",
+        name: "Platform",
+        tasks: [
+          {
+            id: "t1",
+            projectId: "p1",
+            name: "Weekdays",
+            start: "2026-07-06",
+            end: "2026-07-17",
+            segments: [
+              { id: "s1", start: "2026-07-06", end: "2026-07-10" },
+              { id: "s2", start: "2026-07-13", end: "2026-07-17" },
+            ],
+          },
+        ],
+      },
+    ];
+
+    render(<GanttChart projects={segmentedProjects} viewMode="day" />);
+
+    expect(screen.getByTestId("task-t1-segment-s1")).toBeInTheDocument();
+    expect(screen.getByTestId("task-t1-segment-s2")).toBeInTheDocument();
+    expect(screen.queryByTestId("task-t1")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("task-t1-connector-s1-s2")
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders dashed connectors between segments when enabled", () => {
+    const segmentedProjects: GanttProject[] = [
+      {
+        id: "p1",
+        name: "Platform",
+        tasks: [
+          {
+            id: "t1",
+            projectId: "p1",
+            name: "Weekdays",
+            start: "2026-07-06",
+            end: "2026-07-17",
+            segments: [
+              { id: "s1", start: "2026-07-06", end: "2026-07-10" },
+              { id: "s2", start: "2026-07-13", end: "2026-07-17" },
+            ],
+          },
+        ],
+      },
+    ];
+
+    render(
+      <GanttChart
+        projects={segmentedProjects}
+        viewMode="day"
+        showSegmentConnectors
+      />
+    );
+
+    expect(screen.getByTestId("task-t1-connector-s1-s2")).toBeInTheDocument();
+  });
+
+  it("emits segmentId when moving or resizing a segment", () => {
+    const onTaskMove = vi.fn();
+    const onTaskMoveEnd = vi.fn();
+    const onTaskResize = vi.fn();
+    const onTaskResizeEnd = vi.fn();
+    const segmentedProjects: GanttProject[] = [
+      {
+        id: "p1",
+        name: "Platform",
+        tasks: [
+          {
+            id: "t1",
+            projectId: "p1",
+            name: "Weekdays",
+            start: "2026-07-06",
+            end: "2026-07-17",
+            segments: [
+              { id: "s1", start: "2026-07-06", end: "2026-07-10" },
+              { id: "s2", start: "2026-07-13", end: "2026-07-17" },
+            ],
+          },
+        ],
+      },
+    ];
+
+    render(
+      <GanttChart
+        projects={segmentedProjects}
+        viewMode="day"
+        onTaskMove={onTaskMove}
+        onTaskMoveEnd={onTaskMoveEnd}
+        onTaskResize={onTaskResize}
+        onTaskResizeEnd={onTaskResizeEnd}
+      />
+    );
+
+    const segment = screen.getByTestId("task-t1-segment-s2");
+    fireEvent.pointerDown(segment, { clientX: 100 });
+    fireEvent.pointerMove(window, { clientX: 148 });
+    fireEvent.pointerUp(window);
+
+    expect(onTaskMove).toHaveBeenCalledWith(
+      expect.objectContaining({
+        taskId: "t1",
+        projectId: "p1",
+        segmentId: "s2",
+        start: expect.any(Date),
+        end: expect.any(Date),
+      })
+    );
+    expect(onTaskMoveEnd).toHaveBeenCalledWith(
+      expect.objectContaining({
+        taskId: "t1",
+        segmentId: "s2",
+        start: expect.any(Date),
+        end: expect.any(Date),
+      })
+    );
+
+    fireEvent.pointerDown(
+      segment.querySelector(".sokkay-gantt__resize--end") as Element,
+      { clientX: 100 }
+    );
+    fireEvent.pointerMove(window, { clientX: 148 });
+    fireEvent.pointerUp(window);
+
+    expect(onTaskResize).toHaveBeenCalledWith(
+      expect.objectContaining({
+        taskId: "t1",
+        segmentId: "s2",
+        edge: "end",
+        end: expect.any(Date),
+      })
+    );
+    expect(onTaskResizeEnd).toHaveBeenCalledWith(
+      expect.objectContaining({
+        taskId: "t1",
+        segmentId: "s2",
         edge: "end",
         end: expect.any(Date),
       })

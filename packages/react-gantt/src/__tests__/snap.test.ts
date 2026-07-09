@@ -106,7 +106,7 @@ describe("snapTo utilities", () => {
       },
       originX: 100,
       start: normalizeDate("2026-07-06"),
-      end: normalizeDate("2026-07-13"),
+      end: normalizeDate("2026-07-12"),
     };
 
     const range = rangeFromPixels(
@@ -143,5 +143,61 @@ describe("snapTo utilities", () => {
       normalizeDate("2026-07-10").getTime() + 6 * 60 * 60 * 1000;
     expect(range.start).toEqual(normalizeDate("2026-07-01"));
     expect(range.end.getTime()).toBe(expectedTime);
+  });
+
+  it("advances resize-start by one day at a time near cell boundaries", () => {
+    const timeline = buildTimeline(mockProjects, "day");
+    const interaction: PointerInteraction<unknown> = {
+      kind: "resize-start",
+      task: {
+        id: "t1",
+        projectId: "p1",
+        name: "Task",
+        start: normalizeDate("2026-07-03"),
+        end: normalizeDate("2026-07-10"),
+      },
+      originX: 100,
+      start: normalizeDate("2026-07-03"),
+      end: normalizeDate("2026-07-10"),
+    };
+
+    // Small movements stay on the original day (round, not directional ceil).
+    const smallForward = rangeFromPixels(
+      interaction,
+      timeline.cellWidth * 0.4,
+      timeline,
+      "day",
+      "day"
+    );
+    expect(smallForward.start).toEqual(normalizeDate("2026-07-03"));
+
+    // Crossing the midpoint of the next cell advances exactly one day.
+    const oneDay = rangeFromPixels(
+      interaction,
+      timeline.cellWidth * 0.6,
+      timeline,
+      "day",
+      "day"
+    );
+    expect(oneDay.start).toEqual(normalizeDate("2026-07-04"));
+
+    // Near the second cell boundary must not jump three days.
+    const almostTwoDays = rangeFromPixels(
+      interaction,
+      timeline.cellWidth * 1.4,
+      timeline,
+      "day",
+      "day"
+    );
+    expect(almostTwoDays.start).toEqual(normalizeDate("2026-07-04"));
+
+    const twoDays = rangeFromPixels(
+      interaction,
+      timeline.cellWidth * 1.6,
+      timeline,
+      "day",
+      "day"
+    );
+    expect(twoDays.start).toEqual(normalizeDate("2026-07-05"));
   });
 });

@@ -266,6 +266,38 @@
   touch-action: none;
 }
 
+.sokkay-gantt__task--segment {
+  z-index: 2;
+}
+
+.sokkay-gantt__segment-connector {
+  position: absolute;
+  z-index: 1;
+  height: var(--sg-task-height);
+  pointer-events: none;
+  background-image: linear-gradient(
+    to right,
+    color-mix(
+        in srgb,
+        var(--sg-task-color, var(--sg-task)) 72%,
+        transparent
+      )
+      50%,
+    transparent 0
+  );
+  background-position: center;
+  background-repeat: repeat-x;
+  background-size: 8px 2px;
+}
+
+.sokkay-gantt__segment-connector.is-selected {
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--sg-selected) 78%, transparent) 50%,
+    transparent 0
+  );
+}
+
 .sokkay-gantt__task.is-interacting {
   transition:
     border-color 150ms ease,

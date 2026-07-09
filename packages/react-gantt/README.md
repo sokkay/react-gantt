@@ -299,11 +299,22 @@ Format:
 
 ```bash
 pnpm format
-```
-
 pnpm format:check
-
 ```
+
+## Release
+
+Publishing is fully manual. From a clean `main`:
+
+```bash
+pnpm release patch   # or minor | major | x.y.z
+pnpm --filter @sokkay/react-gantt build
+pnpm --filter @sokkay/react-gantt publish --access public
+git push
+git push origin vX.Y.Z
+```
+
+The script bumps `packages/react-gantt`, updates its `CHANGELOG.md`, commits, and creates the `vX.Y.Z` tag. You build and publish to npm yourself.
 
 ## Package Build
 

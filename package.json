@@ -12,12 +12,9 @@
     "lint": "eslint .",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "node scripts/release.mjs"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.31.0",
     "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",

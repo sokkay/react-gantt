@@ -1,5 +1,13 @@
 # @sokkay/react-gantt
 
+## 0.4.0
+
+### Minor Changes
+
+- 48c47b0: feat: add optional task `segments` for non-contiguous ranges, with independent move/resize (`segmentId`), `onTaskMoveEnd` / `onTaskResizeEnd`, and optional `showSegmentConnectors`
+
+  Not a breaking change: additive API; tasks without `segments` keep the previous single-bar behavior
+
 ## 0.3.0
 
 ### Minor Changes

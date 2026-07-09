@@ -167,6 +167,39 @@ pnpm --filter @sokkay/react-gantt build
 pnpm --filter docs dev
 ```
 
+## Release (manual)
+
+El versionado y la publicacion a npm son **100% manuales**. No hay Changesets
+ni CI de autopublicacion en GitHub.
+
+Script: `scripts/release.mjs` (via `pnpm release`).
+
+Que hace el script:
+
+- Exige working tree limpio y que el tag `vX.Y.Z` no exista.
+- Sube la version de `packages/react-gantt/package.json`
+  (`patch` | `minor` | `major` | `x.y.z`).
+- Agrega una seccion a `packages/react-gantt/CHANGELOG.md` con los commits
+  desde el ultimo tag.
+- Crea el commit `chore: release vX.Y.Z` y el tag `vX.Y.Z`.
+- **No** hace build, **no** publica a npm y **no** hace `git push`.
+
+Flujo correcto desde `main` limpio:
+
+```bash
+pnpm release patch   # o minor | major | x.y.z
+pnpm --filter @sokkay/react-gantt build
+pnpm --filter @sokkay/react-gantt publish --access public
+git push
+git push origin vX.Y.Z
+```
+
+Reglas para agentes:
+
+- No reintroducir Changesets ni workflows de release en `.github/`.
+- No publicar a npm ni crear tags/releases salvo pedido explicito del usuario.
+- Si se pide ayuda con una release, seguir este flujo y el script existente.
+
 ## Convenciones de Codigo
 
 - TypeScript estricto. Evitar `any`; si se usa, justificarlo.

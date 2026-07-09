@@ -40,6 +40,12 @@ export interface DemoCopy {
     scenarioSegmented: string;
     segments: string;
     connectors: string;
+    eventLog: string;
+    eventLogOn: string;
+    eventLogOff: string;
+    tabState: string;
+    tabControls: string;
+    tabEvents: string;
   };
 }
 
@@ -105,6 +111,12 @@ export const demoCopy: Record<DemoLanguage, DemoCopy> = {
       scenarioSegmented: "Segmented",
       segments: "Segments",
       connectors: "Connectors",
+      eventLog: "Event log",
+      eventLogOn: "on",
+      eventLogOff: "off",
+      tabState: "State",
+      tabControls: "Controls",
+      tabEvents: "Events",
     },
   },
   es: {
@@ -142,6 +154,12 @@ export const demoCopy: Record<DemoLanguage, DemoCopy> = {
       scenarioSegmented: "Segmentadas",
       segments: "Segmentos",
       connectors: "Conectores",
+      eventLog: "Log de eventos",
+      eventLogOn: "on",
+      eventLogOff: "off",
+      tabState: "Estado",
+      tabControls: "Controles",
+      tabEvents: "Eventos",
     },
   },
 };

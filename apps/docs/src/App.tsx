@@ -12,8 +12,13 @@ import {
 } from "@sokkay/react-gantt";
 import "@sokkay/react-gantt/styles.css";
 import { addDays, format } from "date-fns";
-import { useMemo, useState } from "react";
-import { demoCopy, demoLanguages, type DemoCopy, type DemoLanguage } from "./demo-i18n";
+import { useMemo, useRef, useState } from "react";
+import {
+  demoCopy,
+  demoLanguages,
+  type DemoCopy,
+  type DemoLanguage,
+} from "./demo-i18n";
 import "./App.css";
 
 const viewModes: GanttViewMode[] = ["day", "week", "month", "quarter", "year"];
@@ -163,6 +168,7 @@ const segmentedProjects: Array<
 ];
 
 type DemoScenario = "default" | "segmented";
+type InspectorTab = "state" | "controls" | "events";
 
 const codeExamples = [
   {
@@ -301,6 +307,8 @@ export default function App() {
   const [language, setLanguage] = useState<DemoLanguage>("en");
   const [scenario, setScenario] = useState<DemoScenario>("default");
   const [showSegmentConnectors, setShowSegmentConnectors] = useState(false);
+  const [logEvents, setLogEvents] = useState(true);
+  const [inspectorTab, setInspectorTab] = useState<InspectorTab>("controls");
   const [projects, setProjects] = useState(initialProjects);
   const [viewMode, setViewMode] = useState<GanttViewMode>("day");
   const [layoutMode, setLayoutMode] = useState<"compact" | "tree">("tree");
@@ -313,6 +321,8 @@ export default function App() {
   const [eventLog, setEventLog] = useState<string[]>([]);
   const [minDate, setMinDate] = useState<string>("2026-07-01");
   const [maxDate, setMaxDate] = useState<string>("2026-07-31");
+  const logEventsRef = useRef(logEvents);
+  logEventsRef.current = logEvents;
 
   const isValidDateString = (str: string) => {
     const d = new Date(str);
@@ -335,7 +345,10 @@ export default function App() {
   );
 
   const pushLog = (message: string) => {
-    setEventLog((items) => [message, ...items].slice(0, 6));
+    if (!logEventsRef.current) {
+      return;
+    }
+    setEventLog((items) => [message, ...items].slice(0, 12));
   };
 
   const formatRangePayload = (
@@ -363,6 +376,7 @@ export default function App() {
   };
 
   const handleMove = (payload: TaskMovePayload) => {
+    pushLog(`move ${formatRangePayload(payload)}`);
     setProjects((items) =>
       updateTask(items, payload.taskId, (task) =>
         applyTaskRangeUpdate(task, payload)
@@ -371,6 +385,7 @@ export default function App() {
   };
 
   const handleResize = (payload: TaskResizePayload) => {
+    pushLog(`resize ${payload.edge} ${formatRangePayload(payload)}`);
     setProjects((items) =>
       updateTask(items, payload.taskId, (task) =>
         applyTaskRangeUpdate(task, payload)
@@ -447,134 +462,6 @@ export default function App() {
             selection, tooltips and custom menus.
           </p>
         </div>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-            alignItems: "flex-end",
-          }}
-        >
-          <div className="view-switcher" aria-label="View mode">
-            {viewModes.map((mode) => (
-              <button
-                className={mode === viewMode ? "is-active" : undefined}
-                type="button"
-                key={mode}
-                onClick={() => setViewMode(mode)}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span
-              style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
-            >
-              {copy.strings.language}:
-            </span>
-            <div className="view-switcher" aria-label="Language">
-              {demoLanguages.map((value) => (
-                <button
-                  className={value === language ? "is-active" : undefined}
-                  type="button"
-                  key={value}
-                  onClick={() => setLanguage(value)}
-                >
-                  {value.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span
-              style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
-            >
-              {copy.strings.snap}:
-            </span>
-            <div className="view-switcher" aria-label="Snap to">
-              {(["viewMode", "none", "day", "week", "month"] as const).map(
-                (mode) => (
-                  <button
-                    className={mode === snapTo ? "is-active" : undefined}
-                    type="button"
-                    key={mode}
-                    onClick={() => setSnapTo(mode)}
-                  >
-                    {mode}
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span
-              style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
-            >
-              {copy.strings.layout}:
-            </span>
-            <div className="view-switcher" aria-label="Layout Mode">
-              {(["compact", "tree"] as const).map((mode) => (
-                <button
-                  className={mode === layoutMode ? "is-active" : undefined}
-                  type="button"
-                  key={mode}
-                  onClick={() => setLayoutMode(mode)}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span
-              style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
-            >
-              {copy.strings.scenario}:
-            </span>
-            <div className="view-switcher" aria-label="Scenario">
-              <button
-                className={scenario === "default" ? "is-active" : undefined}
-                type="button"
-                onClick={() => switchScenario("default")}
-              >
-                {copy.strings.scenarioDefault}
-              </button>
-              <button
-                className={scenario === "segmented" ? "is-active" : undefined}
-                type="button"
-                onClick={() => switchScenario("segmented")}
-              >
-                {copy.strings.scenarioSegmented}
-              </button>
-            </div>
-          </div>
-          {scenario === "segmented" ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span
-                style={{ fontSize: "12px", color: "#64748b", fontWeight: 650 }}
-              >
-                {copy.strings.connectors}:
-              </span>
-              <div className="view-switcher" aria-label="Segment connectors">
-                <button
-                  className={showSegmentConnectors ? "is-active" : undefined}
-                  type="button"
-                  onClick={() => setShowSegmentConnectors(true)}
-                >
-                  on
-                </button>
-                <button
-                  className={!showSegmentConnectors ? "is-active" : undefined}
-                  type="button"
-                  onClick={() => setShowSegmentConnectors(false)}
-                >
-                  off
-                </button>
-              </div>
-            </div>
-          ) : null}
-        </div>
         <div className="docs-actions">
           <button
             type="button"
@@ -591,150 +478,191 @@ export default function App() {
         </div>
       </section>
 
-      <section className="demo-grid">
-        <div className="gantt-panel">
-          <GanttChart
-            ref={ganttRef}
-            projects={projects}
-            viewMode={viewMode}
-            layoutMode={layoutMode}
-            minDate={resolvedMinDate}
-            maxDate={resolvedMaxDate}
-            snapTo={snapTo === "viewMode" ? undefined : snapTo}
-            showSegmentConnectors={showSegmentConnectors}
-            selectedTaskId={selectedTaskId}
-            selectionToolbarMode="static"
-            collapsedProjectIds={collapsedProjectIds}
-            virtualized
-            sidebarWidth={sidebarWidth}
-            minSidebarWidth={240}
-            onSidebarWidthChange={setSidebarWidth}
-            locale={copy.locale}
-            labels={copy.labels}
-            onTaskMove={handleMove}
-            onTaskMoveEnd={handleMoveEnd}
-            onTaskResize={handleResize}
-            onTaskResizeEnd={handleResizeEnd}
-            onTaskTransfer={handleTransfer}
-            onTaskReorder={handleTaskReorder}
-            onProjectReorder={({
-              projects: nextProjects,
-              activeProjectId,
-              overProjectId,
-            }) => {
-              setProjects(nextProjects);
-              pushLog(`reorder ${activeProjectId} over ${overProjectId}`);
-            }}
-            onProjectCollapseChange={(_, __, nextIds) =>
-              setCollapsedProjectIds(nextIds)
-            }
-            onTaskSelect={(task) => setSelectedTaskId(task?.id ?? null)}
-            onTaskContextMenu={({ task }) => pushLog(`context ${task.id}`)}
-            renderProjectCell={(project, state) => (
-              <span>
-                {project.name}
-                <small>
-                  {copy.strings.projectCellMeta(
-                    state.taskCount,
-                    project.meta?.owner ?? ""
-                  )}
-                </small>
-              </span>
-            )}
-            renderTask={(task) => (
-              <span>
-                {task.name}
-                <small>{task.progress ?? 0}%</small>
-              </span>
-            )}
-            renderTaskTooltip={(task, { segment }) => {
-              const start = segment?.start ?? task.start;
-              const end = segment?.end ?? task.end;
-              return (
-                <div className="custom-tooltip">
-                  <strong>{task.name}</strong>
-                  <span>
-                    {format(start, "MMM d", { locale: copy.locale })} -{" "}
-                    {format(end, "MMM d, yyyy", { locale: copy.locale })}
-                  </span>
-                  <span>{task.meta?.status}</span>
-                </div>
-              );
-            }}
-            renderContextMenu={({ task, actions }) => (
-              <>
-                <button type="button" onClick={actions.select}>
-                  {copy.strings.selectTask(task.name)}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setProjects((items) =>
-                      updateTask(items, task.id, (currentTask) => {
-                        if (!currentTask.segments?.length) {
-                          return {
-                            ...currentTask,
-                            start: addDays(new Date(currentTask.start), 1),
-                            end: addDays(new Date(currentTask.end), 1),
-                          };
-                        }
-
-                        const segments = currentTask.segments.map((segment) => ({
-                          ...segment,
-                          start: addDays(new Date(segment.start), 1),
-                          end: addDays(new Date(segment.end), 1),
-                        }));
-                        const envelope = envelopeFromSegments(segments);
-
-                        return {
-                          ...currentTask,
-                          segments,
-                          start: envelope.start,
-                          end: envelope.end,
-                        };
-                      })
-                    );
-                    actions.close();
-                  }}
-                >
-                  {copy.strings.shiftOneDay}
-                </button>
-              </>
-            )}
-            renderSelectionToolbar={(task) => (
-              <>
-                <strong>{task.name}</strong>
-                <span>{formatRange(task, copy.locale)}</span>
-                <button type="button" onClick={() => setSelectedTaskId(null)}>
-                  {copy.strings.clear}
-                </button>
-              </>
-            )}
-            renderEmptySelectionToolbar={() => (
-              <>
-                <strong>{copy.strings.noTaskSelectedTitle}</strong>
-                <span>{copy.strings.noTaskSelectedHint}</span>
-              </>
-            )}
-            renderCollapsedProjectSummary={(summary) => (
-              <>
-                <strong className="sokkay-gantt__collapsed-summary-name">
-                  {summary.project.name}
-                </strong>
-                <span className="sokkay-gantt__collapsed-summary-meta">
-                  {copy.strings.collapsedSummaryMeta(
-                    summary.taskCount,
-                    format(summary.start, "MMM d", { locale: copy.locale }),
-                    format(summary.end, "MMM d", { locale: copy.locale })
-                  )}
-                </span>
-              </>
-            )}
-          />
+      <section className="inspector inspector--top">
+        <div className="inspector-header">
+          <h2>{copy.strings.controlledState}</h2>
+          <div className="view-switcher" role="tablist" aria-label="Inspector">
+            {(
+              [
+                ["controls", copy.strings.tabControls],
+                ["state", copy.strings.tabState],
+                ["events", copy.strings.tabEvents],
+              ] as const
+            ).map(([tab, label]) => (
+              <button
+                key={tab}
+                type="button"
+                role="tab"
+                aria-selected={inspectorTab === tab}
+                className={inspectorTab === tab ? "is-active" : undefined}
+                onClick={() => setInspectorTab(tab)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <aside className="inspector">
-          <h2>{copy.strings.controlledState}</h2>
+        {inspectorTab === "controls" ? (
+          <div className="inspector-controls">
+            <div className="control-row">
+              <label className="control-label" htmlFor="demo-view-mode">
+                {copy.strings.view}
+              </label>
+              <select
+                id="demo-view-mode"
+                className="control-select"
+                aria-label="View mode"
+                value={viewMode}
+                onChange={(event) =>
+                  setViewMode(event.target.value as GanttViewMode)
+                }
+              >
+                {viewModes.map((mode) => (
+                  <option key={mode} value={mode}>
+                    {mode}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="control-row">
+              <span className="control-label">{copy.strings.language}</span>
+              <div className="view-switcher" aria-label="Language">
+                {demoLanguages.map((value) => (
+                  <button
+                    className={value === language ? "is-active" : undefined}
+                    type="button"
+                    key={value}
+                    onClick={() => setLanguage(value)}
+                  >
+                    {value.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="control-row">
+              <label className="control-label" htmlFor="demo-snap-to">
+                {copy.strings.snap}
+              </label>
+              <select
+                id="demo-snap-to"
+                className="control-select"
+                aria-label="Snap to"
+                value={snapTo}
+                onChange={(event) =>
+                  setSnapTo(
+                    event.target.value as GanttViewMode | "none" | "viewMode"
+                  )
+                }
+              >
+                {(["viewMode", "none", "day", "week", "month"] as const).map(
+                  (mode) => (
+                    <option key={mode} value={mode}>
+                      {mode}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+            <div className="control-row">
+              <span className="control-label">{copy.strings.layout}</span>
+              <div className="view-switcher" aria-label="Layout Mode">
+                {(["compact", "tree"] as const).map((mode) => (
+                  <button
+                    className={mode === layoutMode ? "is-active" : undefined}
+                    type="button"
+                    key={mode}
+                    onClick={() => setLayoutMode(mode)}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="control-row">
+              <span className="control-label">{copy.strings.scenario}</span>
+              <div className="view-switcher" aria-label="Scenario">
+                <button
+                  className={scenario === "default" ? "is-active" : undefined}
+                  type="button"
+                  onClick={() => switchScenario("default")}
+                >
+                  {copy.strings.scenarioDefault}
+                </button>
+                <button
+                  className={scenario === "segmented" ? "is-active" : undefined}
+                  type="button"
+                  onClick={() => switchScenario("segmented")}
+                >
+                  {copy.strings.scenarioSegmented}
+                </button>
+              </div>
+            </div>
+            {scenario === "segmented" ? (
+              <div className="control-row">
+                <span className="control-label">{copy.strings.connectors}</span>
+                <div className="view-switcher" aria-label="Segment connectors">
+                  <button
+                    className={showSegmentConnectors ? "is-active" : undefined}
+                    type="button"
+                    onClick={() => setShowSegmentConnectors(true)}
+                  >
+                    on
+                  </button>
+                  <button
+                    className={!showSegmentConnectors ? "is-active" : undefined}
+                    type="button"
+                    onClick={() => setShowSegmentConnectors(false)}
+                  >
+                    off
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            <div className="control-row">
+              <span className="control-label">{copy.strings.eventLog}</span>
+              <div className="view-switcher" aria-label="Event log">
+                <button
+                  className={logEvents ? "is-active" : undefined}
+                  type="button"
+                  onClick={() => setLogEvents(true)}
+                >
+                  {copy.strings.eventLogOn}
+                </button>
+                <button
+                  className={!logEvents ? "is-active" : undefined}
+                  type="button"
+                  onClick={() => {
+                    setLogEvents(false);
+                    setEventLog([]);
+                  }}
+                >
+                  {copy.strings.eventLogOff}
+                </button>
+              </div>
+            </div>
+            <div className="control-row control-row--dates">
+              <label className="date-field">
+                <span className="control-label">{copy.strings.minDate}</span>
+                <input
+                  type="date"
+                  value={minDate}
+                  onChange={(e) => setMinDate(e.target.value)}
+                />
+              </label>
+              <label className="date-field">
+                <span className="control-label">{copy.strings.maxDate}</span>
+                <input
+                  type="date"
+                  value={maxDate}
+                  onChange={(e) => setMaxDate(e.target.value)}
+                />
+              </label>
+            </div>
+          </div>
+        ) : null}
+
+        {inspectorTab === "state" ? (
           <dl>
             <dt>{copy.strings.view}</dt>
             <dd>{viewMode}</dd>
@@ -747,71 +675,170 @@ export default function App() {
             <dt>{copy.strings.sidebar}</dt>
             <dd>{Math.round(sidebarWidth)}px</dd>
           </dl>
-          <h2>{copy.strings.timelineBounds}</h2>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
-              marginBottom: "20px",
-            }}
-          >
-            <label
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px",
-                fontSize: "12px",
-                color: "#64748b",
-                fontWeight: 600,
-              }}
-            >
-              {copy.strings.minDate}:
-              <input
-                type="date"
-                value={minDate}
-                onChange={(e) => setMinDate(e.target.value)}
-                style={{
-                  padding: "6px 10px",
-                  borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
-                  fontSize: "13px",
-                  fontFamily: "inherit",
+        ) : null}
+
+        {inspectorTab === "events" ? (
+          logEvents ? (
+            <ol>
+              {eventLog.length === 0 ? (
+                <li className="event-log-empty">—</li>
+              ) : (
+                eventLog.map((item, index) => (
+                  <li key={`${item}-${index}`}>{item}</li>
+                ))
+              )}
+            </ol>
+          ) : (
+            <p className="event-log-empty">{copy.strings.eventLogOff}</p>
+          )
+        ) : null}
+      </section>
+
+      <section className="gantt-panel">
+        <GanttChart
+          ref={ganttRef}
+          projects={projects}
+          viewMode={viewMode}
+          layoutMode={layoutMode}
+          minDate={resolvedMinDate}
+          maxDate={resolvedMaxDate}
+          snapTo={snapTo === "viewMode" ? undefined : snapTo}
+          showSegmentConnectors={showSegmentConnectors}
+          selectedTaskId={selectedTaskId}
+          selectionToolbarMode="static"
+          collapsedProjectIds={collapsedProjectIds}
+          virtualized
+          sidebarWidth={sidebarWidth}
+          minSidebarWidth={240}
+          onSidebarWidthChange={setSidebarWidth}
+          locale={copy.locale}
+          labels={copy.labels}
+          onTaskMove={handleMove}
+          onTaskMoveEnd={handleMoveEnd}
+          onTaskResize={handleResize}
+          onTaskResizeEnd={handleResizeEnd}
+          onTaskTransfer={handleTransfer}
+          onTaskReorder={handleTaskReorder}
+          onProjectReorder={({
+            projects: nextProjects,
+            activeProjectId,
+            overProjectId,
+          }) => {
+            setProjects(nextProjects);
+            pushLog(`reorder ${activeProjectId} over ${overProjectId}`);
+          }}
+          onProjectCollapseChange={(projectId, collapsed, nextIds) => {
+            setCollapsedProjectIds(nextIds);
+            pushLog(
+              `collapse ${projectId} -> ${collapsed ? "collapsed" : "expanded"}`
+            );
+          }}
+          onTaskSelect={(task) => {
+            setSelectedTaskId(task?.id ?? null);
+            pushLog(`select ${task?.id ?? "null"}`);
+          }}
+          onTaskContextMenu={({ task }) => pushLog(`context ${task.id}`)}
+          renderProjectCell={(project, state) => (
+            <span>
+              {project.name}
+              <small>
+                {copy.strings.projectCellMeta(
+                  state.taskCount,
+                  project.meta?.owner ?? ""
+                )}
+              </small>
+            </span>
+          )}
+          renderTask={(task) => (
+            <span>
+              {task.name}
+              <small>{task.progress ?? 0}%</small>
+            </span>
+          )}
+          renderTaskTooltip={(task, { segment }) => {
+            const start = segment?.start ?? task.start;
+            const end = segment?.end ?? task.end;
+            return (
+              <div className="custom-tooltip">
+                <strong>{task.name}</strong>
+                <span>
+                  {format(start, "MMM d", { locale: copy.locale })} -{" "}
+                  {format(end, "MMM d, yyyy", { locale: copy.locale })}
+                </span>
+                <span>{task.meta?.status}</span>
+              </div>
+            );
+          }}
+          renderContextMenu={({ task, actions }) => (
+            <>
+              <button type="button" onClick={actions.select}>
+                {copy.strings.selectTask(task.name)}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setProjects((items) =>
+                    updateTask(items, task.id, (currentTask) => {
+                      if (!currentTask.segments?.length) {
+                        return {
+                          ...currentTask,
+                          start: addDays(new Date(currentTask.start), 1),
+                          end: addDays(new Date(currentTask.end), 1),
+                        };
+                      }
+
+                      const segments = currentTask.segments.map((segment) => ({
+                        ...segment,
+                        start: addDays(new Date(segment.start), 1),
+                        end: addDays(new Date(segment.end), 1),
+                      }));
+                      const envelope = envelopeFromSegments(segments);
+
+                      return {
+                        ...currentTask,
+                        segments,
+                        start: envelope.start,
+                        end: envelope.end,
+                      };
+                    })
+                  );
+                  actions.close();
                 }}
-              />
-            </label>
-            <label
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px",
-                fontSize: "12px",
-                color: "#64748b",
-                fontWeight: 600,
-              }}
-            >
-              {copy.strings.maxDate}:
-              <input
-                type="date"
-                value={maxDate}
-                onChange={(e) => setMaxDate(e.target.value)}
-                style={{
-                  padding: "6px 10px",
-                  borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
-                  fontSize: "13px",
-                  fontFamily: "inherit",
-                }}
-              />
-            </label>
-          </div>
-          <h2>{copy.strings.events}</h2>
-          <ol>
-            {eventLog.map((item, index) => (
-              <li key={`${item}-${index}`}>{item}</li>
-            ))}
-          </ol>
-        </aside>
+              >
+                {copy.strings.shiftOneDay}
+              </button>
+            </>
+          )}
+          renderSelectionToolbar={(task) => (
+            <>
+              <strong>{task.name}</strong>
+              <span>{formatRange(task, copy.locale)}</span>
+              <button type="button" onClick={() => setSelectedTaskId(null)}>
+                {copy.strings.clear}
+              </button>
+            </>
+          )}
+          renderEmptySelectionToolbar={() => (
+            <>
+              <strong>{copy.strings.noTaskSelectedTitle}</strong>
+              <span>{copy.strings.noTaskSelectedHint}</span>
+            </>
+          )}
+          renderCollapsedProjectSummary={(summary) => (
+            <>
+              <strong className="sokkay-gantt__collapsed-summary-name">
+                {summary.project.name}
+              </strong>
+              <span className="sokkay-gantt__collapsed-summary-meta">
+                {copy.strings.collapsedSummaryMeta(
+                  summary.taskCount,
+                  format(summary.start, "MMM d", { locale: copy.locale }),
+                  format(summary.end, "MMM d", { locale: copy.locale })
+                )}
+              </span>
+            </>
+          )}
+        />
       </section>
 
       <section className="code-examples">

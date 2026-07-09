@@ -1,6 +1,10 @@
 import type * as React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AUTO_SCROLL_EDGE, AUTO_SCROLL_STEP } from "../constants";
+import {
+  AUTO_SCROLL_EDGE,
+  AUTO_SCROLL_STEP,
+  POINTER_DRAG_THRESHOLD_PX,
+} from "../constants";
 import type { InteractionKind, PointerInteraction } from "../internal-types";
 import type {
   GanttChartProps,
@@ -11,6 +15,16 @@ import type {
 } from "../types";
 import { rangeFromPixels } from "../utils/range-from-pixels";
 import type { TimelineModel } from "../utils/timeline";
+
+function rangeChanged(
+  range: { start: Date; end: Date },
+  interaction: PointerInteraction<unknown>
+) {
+  return (
+    range.start.getTime() !== interaction.start.getTime() ||
+    range.end.getTime() !== interaction.end.getTime()
+  );
+}
 
 export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
   rootRef,
@@ -54,6 +68,8 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
   const maxDateRef = useRef(maxDate);
   const lastMovePayloadRef = useRef<TaskMovePayload | null>(null);
   const lastResizePayloadRef = useRef<TaskResizePayload | null>(null);
+  const didInteractRef = useRef(false);
+  const endedRef = useRef(false);
 
   timelineRef.current = timeline;
   viewModeRef.current = viewMode;
@@ -97,6 +113,8 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
 
     lastMovePayloadRef.current = null;
     lastResizePayloadRef.current = null;
+    didInteractRef.current = false;
+    endedRef.current = false;
 
     const computeRange = (clientX: number) => {
       const currentViewMode = viewModeRef.current;
@@ -113,7 +131,25 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
 
     const handleMove = (event: PointerEvent) => {
       autoScroll(event);
-      const range = computeRange(event.clientX);
+
+      const clientX = event.clientX;
+      if (typeof clientX !== "number" || Number.isNaN(clientX)) {
+        return;
+      }
+
+      const deltaX = Math.abs(clientX - interaction.originX);
+      const range = computeRange(clientX);
+      const isRealInteraction =
+        didInteractRef.current ||
+        deltaX > POINTER_DRAG_THRESHOLD_PX ||
+        rangeChanged(range, interaction);
+
+      if (!isRealInteraction) {
+        return;
+      }
+
+      didInteractRef.current = true;
+
       const payload = {
         taskId: interaction.task.id,
         projectId: interaction.task.projectId,
@@ -136,18 +172,28 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
     };
 
     const handleUp = () => {
-      // Only commit end callbacks after an actual drag/resize move. A plain
-      // click still clears the interaction but must not fire *End handlers.
-      if (interaction.kind === "move") {
-        if (lastMovePayloadRef.current) {
-          onTaskMoveEndRef.current?.(lastMovePayloadRef.current);
+      // pointerup and pointercancel can both fire; only commit once.
+      if (endedRef.current) {
+        return;
+      }
+      endedRef.current = true;
+
+      // Only commit end callbacks after an actual drag/resize. A plain click
+      // (or sub-threshold jitter) still clears the interaction but must not
+      // fire *End handlers.
+      if (didInteractRef.current) {
+        if (interaction.kind === "move") {
+          if (lastMovePayloadRef.current) {
+            onTaskMoveEndRef.current?.(lastMovePayloadRef.current);
+          }
+        } else if (lastResizePayloadRef.current) {
+          onTaskResizeEndRef.current?.(lastResizePayloadRef.current);
         }
-      } else if (lastResizePayloadRef.current) {
-        onTaskResizeEndRef.current?.(lastResizePayloadRef.current);
       }
 
       lastMovePayloadRef.current = null;
       lastResizePayloadRef.current = null;
+      didInteractRef.current = false;
       setInteraction(null);
     };
 
@@ -171,6 +217,11 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
     event.preventDefault();
     event.stopPropagation();
 
+    lastMovePayloadRef.current = null;
+    lastResizePayloadRef.current = null;
+    didInteractRef.current = false;
+    endedRef.current = false;
+
     const segment = segmentId
       ? task.segments?.find((item) => item.id === segmentId)
       : undefined;
@@ -179,7 +230,7 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
       kind,
       task,
       segmentId,
-      originX: event.clientX,
+      originX: event.clientX ?? 0,
       start: segment?.start ?? task.start,
       end: segment?.end ?? task.end,
     });

@@ -60,6 +60,29 @@ describe("GanttChart", () => {
     expect(await screen.findByText("Tooltip for API")).toBeInTheDocument();
   });
 
+  it("passes segment: undefined to tooltips on non-segmented tasks", async () => {
+    const renderTaskTooltip = vi.fn((task, { segment }) => (
+      <span>
+        {task.name}:{segment === undefined ? "none" : segment.id}
+      </span>
+    ));
+
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        renderTaskTooltip={renderTaskTooltip}
+      />
+    );
+
+    fireEvent.pointerEnter(screen.getByTestId("task-t1"));
+    expect(await screen.findByText("API:none")).toBeInTheDocument();
+    expect(renderTaskTooltip).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "t1" }),
+      { segment: undefined }
+    );
+  });
+
   it("passes the hovered segment to custom tooltips", async () => {
     const segmentedProjects: GanttProject[] = [
       {
@@ -81,20 +104,28 @@ describe("GanttChart", () => {
       },
     ];
 
+    const renderTaskTooltip = vi.fn((task, { segment }) => (
+      <span>
+        {task.name}:{segment?.id ?? "none"}
+      </span>
+    ));
+
     render(
       <GanttChart
         projects={segmentedProjects}
         viewMode="day"
-        renderTaskTooltip={(task, { segment }) => (
-          <span>
-            {task.name}:{segment?.id ?? "none"}
-          </span>
-        )}
+        renderTaskTooltip={renderTaskTooltip}
       />
     );
 
     fireEvent.pointerEnter(screen.getByTestId("task-t1-segment-s2"));
     expect(await screen.findByText("Weekdays:s2")).toBeInTheDocument();
+    expect(renderTaskTooltip).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "t1" }),
+      expect.objectContaining({
+        segment: expect.objectContaining({ id: "s2" }),
+      })
+    );
   });
 
   it("renders a custom context menu and invokes callback payload", () => {
@@ -233,6 +264,72 @@ describe("GanttChart", () => {
 
     expect(onTaskResize).not.toHaveBeenCalled();
     expect(onTaskResizeEnd).not.toHaveBeenCalled();
+  });
+
+  it("does not emit end callbacks for sub-threshold pointer jitter", () => {
+    const onTaskMove = vi.fn();
+    const onTaskMoveEnd = vi.fn();
+    const onTaskResize = vi.fn();
+    const onTaskResizeEnd = vi.fn();
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        onTaskMove={onTaskMove}
+        onTaskMoveEnd={onTaskMoveEnd}
+        onTaskResize={onTaskResize}
+        onTaskResizeEnd={onTaskResizeEnd}
+      />
+    );
+
+    const task = screen.getByTestId("task-t1");
+    fireEvent.pointerDown(task, { clientX: 100 });
+    fireEvent.pointerMove(window, { clientX: 102 });
+    fireEvent.pointerUp(window);
+
+    expect(onTaskMove).not.toHaveBeenCalled();
+    expect(onTaskMoveEnd).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(
+      task.querySelector(".sokkay-gantt__resize--end") as Element,
+      { clientX: 100 }
+    );
+    fireEvent.pointerMove(window, { clientX: 101 });
+    fireEvent.pointerUp(window);
+
+    expect(onTaskResize).not.toHaveBeenCalled();
+    expect(onTaskResizeEnd).not.toHaveBeenCalled();
+  });
+
+  it("does not duplicate end callbacks when pointercancel follows pointerup", () => {
+    const onTaskMoveEnd = vi.fn();
+    const onTaskResizeEnd = vi.fn();
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        onTaskMoveEnd={onTaskMoveEnd}
+        onTaskResizeEnd={onTaskResizeEnd}
+      />
+    );
+
+    const task = screen.getByTestId("task-t1");
+    fireEvent.pointerDown(task, { clientX: 100 });
+    fireEvent.pointerMove(window, { clientX: 148 });
+    fireEvent.pointerUp(window);
+    fireEvent.pointerCancel(window);
+
+    expect(onTaskMoveEnd).toHaveBeenCalledTimes(1);
+
+    fireEvent.pointerDown(
+      task.querySelector(".sokkay-gantt__resize--end") as Element,
+      { clientX: 100 }
+    );
+    fireEvent.pointerMove(window, { clientX: 148 });
+    fireEvent.pointerCancel(window);
+    fireEvent.pointerUp(window);
+
+    expect(onTaskResizeEnd).toHaveBeenCalledTimes(1);
   });
 
   it("renders segmented tasks as independent bars", () => {

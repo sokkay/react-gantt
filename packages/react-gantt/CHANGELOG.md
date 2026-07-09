@@ -1,5 +1,12 @@
 # @sokkay/react-gantt
 
+## 0.4.3
+
+_2026-07-09_
+
+- feat(gantt): pass right-clicked segment to context menu callbacks
+- docs: document the manual release flow in AGENTS.md
+
 ## 0.4.2
 
 _2026-07-09_

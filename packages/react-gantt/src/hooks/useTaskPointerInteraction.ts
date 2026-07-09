@@ -135,24 +135,15 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
       onTaskResizeRef.current?.(resizePayload);
     };
 
-    const handleUp = (event: PointerEvent) => {
-      const range = computeRange(event.clientX);
-      const base = {
-        taskId: interaction.task.id,
-        projectId: interaction.task.projectId,
-        segmentId: interaction.segmentId,
-        ...range,
-      };
-
+    const handleUp = () => {
+      // Only commit end callbacks after an actual drag/resize move. A plain
+      // click still clears the interaction but must not fire *End handlers.
       if (interaction.kind === "move") {
-        onTaskMoveEndRef.current?.(lastMovePayloadRef.current ?? base);
-      } else {
-        onTaskResizeEndRef.current?.(
-          lastResizePayloadRef.current ?? {
-            ...base,
-            edge: interaction.kind === "resize-start" ? "start" : "end",
-          }
-        );
+        if (lastMovePayloadRef.current) {
+          onTaskMoveEndRef.current?.(lastMovePayloadRef.current);
+        }
+      } else if (lastResizePayloadRef.current) {
+        onTaskResizeEndRef.current?.(lastResizePayloadRef.current);
       }
 
       lastMovePayloadRef.current = null;

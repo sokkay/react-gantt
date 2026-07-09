@@ -165,6 +165,39 @@ describe("GanttChart", () => {
     );
   });
 
+  it("does not emit end callbacks on a plain click without drag", () => {
+    const onTaskMove = vi.fn();
+    const onTaskMoveEnd = vi.fn();
+    const onTaskResize = vi.fn();
+    const onTaskResizeEnd = vi.fn();
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        onTaskMove={onTaskMove}
+        onTaskMoveEnd={onTaskMoveEnd}
+        onTaskResize={onTaskResize}
+        onTaskResizeEnd={onTaskResizeEnd}
+      />
+    );
+
+    const task = screen.getByTestId("task-t1");
+    fireEvent.pointerDown(task, { clientX: 100 });
+    fireEvent.pointerUp(window);
+
+    expect(onTaskMove).not.toHaveBeenCalled();
+    expect(onTaskMoveEnd).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(
+      task.querySelector(".sokkay-gantt__resize--end") as Element,
+      { clientX: 100 }
+    );
+    fireEvent.pointerUp(window);
+
+    expect(onTaskResize).not.toHaveBeenCalled();
+    expect(onTaskResizeEnd).not.toHaveBeenCalled();
+  });
+
   it("renders segmented tasks as independent bars", () => {
     const segmentedProjects: GanttProject[] = [
       {

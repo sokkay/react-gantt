@@ -30,11 +30,13 @@ jobs:
           # Node 22.14+ / npm 11.5.1+ required for npm Trusted Publishing (OIDC).
           # Do NOT set registry-url here: it writes a placeholder NODE_AUTH_TOKEN
           # into .npmrc and blocks the OIDC token exchange (surfaces as E404 on publish).
-          node-version: 22.14.0
+          node-version: 24
           cache: 'pnpm'
 
       - name: Upgrade npm
-        run: npm install -g npm@latest
+        # Pin to npm 11: npm@latest (12+) requires Node ^22.22.2 || ^24.15.0.
+        # npm 11.5.1+ is enough for OIDC trusted publishing.
+        run: npm install -g npm@11
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile

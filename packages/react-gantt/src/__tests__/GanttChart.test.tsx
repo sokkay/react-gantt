@@ -223,6 +223,56 @@ describe("GanttChart", () => {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
+  it("opens the context menu upward when there is not enough viewport space below", () => {
+    const originalClientHeight = Object.getOwnPropertyDescriptor(
+      document.documentElement,
+      "clientHeight"
+    );
+    Object.defineProperty(document.documentElement, "clientHeight", {
+      configurable: true,
+      value: 800,
+    });
+    const getBoundingClientRect = vi
+      .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+      .mockReturnValue({
+        bottom: 0,
+        height: 100,
+        left: 0,
+        right: 160,
+        toJSON: () => ({}),
+        top: 0,
+        width: 160,
+        x: 0,
+        y: 0,
+      });
+
+    try {
+      render(
+        <GanttChart
+          projects={projects}
+          viewMode="day"
+          renderContextMenu={() => <button type="button">Copy</button>}
+        />
+      );
+
+      fireEvent.contextMenu(screen.getByTestId("task-t1"), {
+        clientX: 100,
+        clientY: 750,
+      });
+
+      expect(screen.getByRole("menu")).toHaveStyle({ top: "650px" });
+    } finally {
+      getBoundingClientRect.mockRestore();
+      if (originalClientHeight) {
+        Object.defineProperty(
+          document.documentElement,
+          "clientHeight",
+          originalClientHeight
+        );
+      }
+    }
+  });
+
   it("emits move and resize payloads with dates", () => {
     const onTaskMove = vi.fn();
     const onTaskMoveEnd = vi.fn();

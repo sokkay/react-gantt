@@ -1,5 +1,11 @@
 # @sokkay/react-gantt
 
+## 0.4.4
+
+_2026-07-10_
+
+- fix: posiciona menu contextual en viewport
+
 ## 0.4.3
 
 _2026-07-09_

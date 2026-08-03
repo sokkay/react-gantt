@@ -145,6 +145,55 @@ export interface CollapsedProjectSummary<
   progress?: number;
 }
 
+/** Stable state passed to project sidebar cell renderers. */
+export interface GanttProjectCellState {
+  /** Whether the project row is currently collapsed. */
+  collapsed: boolean;
+  /** Number of tasks that belong to the project. */
+  taskCount: number;
+}
+
+/** Stable state passed to task sidebar cell renderers. */
+export interface GanttTaskCellState<
+  TProjectMeta = unknown,
+  TTaskMeta = unknown,
+> {
+  /** Project that owns the task row. */
+  project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
+  /** Zero-based task position inside the project. */
+  index: number;
+}
+
+/**
+ * An additional data column rendered in the sidebar.
+ * Project and task data remain controlled by the consumer; columns only render it.
+ */
+export interface GanttSidebarColumn<
+  TProjectMeta = unknown,
+  TTaskMeta = unknown,
+> {
+  /** Stable identifier used as the React key for the column. */
+  id: string;
+  /** Content rendered in the column header. */
+  header: ReactNode;
+  /** CSS grid track width. Numbers are interpreted as pixels. */
+  width?: string | number;
+  /** Renders the value for a project row. Omit it to leave that row type empty. */
+  renderProject?: (
+    project: NormalizedGanttProject<TProjectMeta, TTaskMeta>,
+    state: GanttProjectCellState
+  ) => ReactNode;
+  /** Renders the value for a task row in tree layout. Omit it to leave that row type empty. */
+  renderTask?: (
+    task: NormalizedGanttTask<TTaskMeta>,
+    state: GanttTaskCellState<TProjectMeta, TTaskMeta>
+  ) => ReactNode;
+  /** Optional class applied to every project and task value cell in this column. */
+  cellClassName?: string;
+  /** Optional class applied to this column's header cell. */
+  headerClassName?: string;
+}
+
 /**
  * Localized text labels and accessibility aria-labels used throughout the Gantt chart.
  */
@@ -392,6 +441,8 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   minSidebarWidth?: string | number;
   /** Callback triggered when the sidebar width changes via dragging the resize handle. */
   onSidebarWidthChange?: (width: number) => void;
+  /** Additional data columns rendered after the primary project/task column. */
+  sidebarColumns?: Array<GanttSidebarColumn<TProjectMeta, TTaskMeta>>;
   /** CSS class applied to the root element. */
   className?: string;
   /** Custom class name overrides for internal Gantt elements. */
@@ -465,7 +516,7 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   /** Custom render function for project rows inside the sidebar column. */
   renderProjectCell?: (
     project: NormalizedGanttProject<TProjectMeta, TTaskMeta>,
-    state: { collapsed: boolean; taskCount: number }
+    state: GanttProjectCellState
   ) => ReactNode;
   /** Custom render function for the header cell of the sidebar. */
   renderSidebarHeader?: () => ReactNode;

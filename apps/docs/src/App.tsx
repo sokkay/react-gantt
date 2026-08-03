@@ -317,7 +317,7 @@ export default function App() {
   );
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>("api");
   const [collapsedProjectIds, setCollapsedProjectIds] = useState<string[]>([]);
-  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [sidebarWidth, setSidebarWidth] = useState(520);
   const [eventLog, setEventLog] = useState<string[]>([]);
   const [minDate, setMinDate] = useState<string>("2026-07-01");
   const [maxDate, setMaxDate] = useState<string>("2026-07-31");
@@ -711,6 +711,35 @@ export default function App() {
           sidebarWidth={sidebarWidth}
           minSidebarWidth={240}
           onSidebarWidthChange={setSidebarWidth}
+          sidebarColumns={[
+            {
+              id: "details",
+              header: copy.strings.details,
+              width: 140,
+              renderProject: (project) => project.meta?.owner ?? "—",
+              renderTask: (task) => task.meta?.status ?? "—",
+            },
+            {
+              id: "start",
+              header: copy.strings.start,
+              width: 100,
+              renderProject: (project) => {
+                const start = project.tasks.reduce<Date | null>(
+                  (earliest, task) =>
+                    earliest === null || task.start < earliest
+                      ? task.start
+                      : earliest,
+                  null
+                );
+
+                return start
+                  ? format(start, "MMM d", { locale: copy.locale })
+                  : "—";
+              },
+              renderTask: (task) =>
+                format(task.start, "MMM d", { locale: copy.locale }),
+            },
+          ]}
           locale={copy.locale}
           labels={copy.labels}
           onTaskMove={handleMove}
@@ -745,12 +774,7 @@ export default function App() {
           renderProjectCell={(project, state) => (
             <span>
               {project.name}
-              <small>
-                {copy.strings.projectCellMeta(
-                  state.taskCount,
-                  project.meta?.owner ?? ""
-                )}
-              </small>
+              <small>{copy.labels.taskCount(state.taskCount)}</small>
             </span>
           )}
           renderTask={(task) => (

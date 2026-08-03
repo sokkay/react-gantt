@@ -55,6 +55,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     sidebarWidth,
     minSidebarWidth,
     onSidebarWidthChange,
+    sidebarColumns = [],
     className,
     classNames,
     theme,
@@ -139,6 +140,13 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
   const showSelectionToolbar =
     selectionToolbarMode === "static" ||
     (selectionToolbarMode === "auto" && selectedTask);
+  const sidebarGridTemplateColumns = `minmax(0, 1fr)${sidebarColumns
+    .map((column) =>
+      typeof column.width === "number"
+        ? ` ${column.width}px`
+        : ` ${column.width ?? "minmax(96px, 1fr)"}`
+    )
+    .join("")}`;
   const contextActions: ContextMenuActions = {
     close: closeContextMenu,
     select: () => {
@@ -282,9 +290,27 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
           <div
             className={cx("sokkay-gantt__sidebar-header", classNames?.sidebar)}
           >
-            {renderSidebarHeader
-              ? renderSidebarHeader()
-              : resolvedLabels.projectHeader}
+            <div
+              className="sokkay-gantt__sidebar-grid"
+              style={{ gridTemplateColumns: sidebarGridTemplateColumns }}
+            >
+              <div className="sokkay-gantt__sidebar-primary-header">
+                {renderSidebarHeader
+                  ? renderSidebarHeader()
+                  : resolvedLabels.projectHeader}
+              </div>
+              {sidebarColumns.map((column) => (
+                <div
+                  className={cx(
+                    "sokkay-gantt__project-column-header",
+                    column.headerClassName
+                  )}
+                  key={column.id}
+                >
+                  {column.header}
+                </div>
+              ))}
+            </div>
             <span
               className="sokkay-gantt__sidebar-resize"
               role="separator"
@@ -349,6 +375,15 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       onToggle={() => toggleProject(row.project.id)}
                       onMouseEnter={() => setHoveredRowId(row.id)}
                       onMouseLeave={() => setHoveredRowId(null)}
+                      gridTemplateColumns={sidebarGridTemplateColumns}
+                      columns={sidebarColumns.map((column) => ({
+                        id: column.id,
+                        className: column.cellClassName,
+                        content: column.renderProject?.(row.project, {
+                          collapsed: row.collapsed,
+                          taskCount: row.project.tasks.length,
+                        }),
+                      }))}
                     >
                       {renderProjectCell
                         ? renderProjectCell(row.project, {
@@ -373,6 +408,15 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       index={row.index}
                       onMouseEnter={() => setHoveredRowId(row.id)}
                       onMouseLeave={() => setHoveredRowId(null)}
+                      gridTemplateColumns={sidebarGridTemplateColumns}
+                      columns={sidebarColumns.map((column) => ({
+                        id: column.id,
+                        className: column.cellClassName,
+                        content: column.renderTask?.(row.task, {
+                          project: row.project,
+                          index: row.index,
+                        }),
+                      }))}
                     >
                       {renderSidebarTaskCell
                         ? renderSidebarTaskCell(row.task)

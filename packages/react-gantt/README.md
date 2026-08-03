@@ -194,6 +194,7 @@ Behavior props:
 - `locale`: `date-fns` locale object for timeline header date formatting
 - `sidebarWidth` / `minSidebarWidth`: fixed project sidebar sizing
 - `onSidebarWidthChange`: receives sidebar resize changes from the drag handle
+- `sidebarColumns`: additional typed columns for project and task rows
 - `snapTo`: `day`, `week`, `month`, `quarter`, `year` or `none`
 - `showSegmentConnectors`: draw dashed lines between consecutive task segments
 - `virtualized`
@@ -225,14 +226,41 @@ Locale:
 ```tsx
 import { es } from "date-fns/locale";
 
-<GanttChart
-  projects={projects}
-  viewMode="month"
-  locale={es}
-/>
+<GanttChart projects={projects} viewMode="month" locale={es} />;
 ```
 
 Customization:
+
+Additional sidebar columns render controlled project and task data after the
+primary cell. Task values appear in `tree` layout. Numeric widths are pixels;
+string widths accept CSS grid tracks. Either renderer can be omitted when a
+column only applies to one row type.
+
+```tsx
+<GanttChart
+  projects={projects}
+  viewMode="month"
+  layoutMode="tree"
+  sidebarWidth={520}
+  sidebarColumns={[
+    {
+      id: "details",
+      header: "Owner / status",
+      width: 140,
+      renderProject: (project) => project.meta?.owner ?? "—",
+      renderTask: (task) => task.meta?.status ?? "—",
+    },
+    {
+      id: "start",
+      header: "Start",
+      width: "minmax(100px, 1fr)",
+      renderProject: (project) =>
+        project.tasks[0]?.start.toLocaleDateString() ?? "—",
+      renderTask: (task) => task.start.toLocaleDateString(),
+    },
+  ]}
+/>
+```
 
 - `renderTask`
 - `renderTaskTooltip(task, { segment? })`
@@ -329,4 +357,3 @@ Consumers do not need to configure Tailwind to use the default styles.
 ## License
 
 MIT
-```

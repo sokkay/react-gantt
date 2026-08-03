@@ -20,6 +20,8 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   onToggle,
   onMouseEnter,
   onMouseLeave,
+  columns = [],
+  gridTemplateColumns,
 }: {
   project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
   children: React.ReactNode;
@@ -33,6 +35,8 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   onToggle: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  columns?: Array<{ id: string; className?: string; content: React.ReactNode }>;
+  gridTemplateColumns?: string;
 }) {
   const {
     attributes,
@@ -58,32 +62,43 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
         height,
         transform: CSS.Transform.toString(transform),
         transition,
+        gridTemplateColumns,
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <button
-        className="sokkay-gantt__project-grip"
-        type="button"
-        aria-label={labels.reorderProject(project)}
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical size={16} />
-      </button>
-      <button
-        className="sokkay-gantt__project-toggle"
-        type="button"
-        aria-label={
-          collapsed
-            ? labels.expandProject(project)
-            : labels.collapseProject(project)
-        }
-        onClick={onToggle}
-      >
-        {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-      </button>
-      <div className="sokkay-gantt__project-label">{children}</div>
+      <div className="sokkay-gantt__project-primary-cell">
+        <button
+          className="sokkay-gantt__project-grip"
+          type="button"
+          aria-label={labels.reorderProject(project)}
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical size={16} />
+        </button>
+        <button
+          className="sokkay-gantt__project-toggle"
+          type="button"
+          aria-label={
+            collapsed
+              ? labels.expandProject(project)
+              : labels.collapseProject(project)
+          }
+          onClick={onToggle}
+        >
+          {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+        </button>
+        <div className="sokkay-gantt__project-label">{children}</div>
+      </div>
+      {columns.map((column) => (
+        <div
+          className={cx("sokkay-gantt__project-data-cell", column.className)}
+          key={column.id}
+        >
+          {column.content}
+        </div>
+      ))}
     </div>
   );
 }
@@ -97,6 +112,8 @@ export function SortableTaskCell<TTaskMeta>({
   index,
   onMouseEnter,
   onMouseLeave,
+  columns = [],
+  gridTemplateColumns,
 }: {
   task: NormalizedGanttTask<TTaskMeta>;
   project: NormalizedGanttProject<unknown, TTaskMeta>;
@@ -106,6 +123,8 @@ export function SortableTaskCell<TTaskMeta>({
   index: number;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  columns?: Array<{ id: string; className?: string; content: React.ReactNode }>;
+  gridTemplateColumns?: string;
 }) {
   const {
     attributes,
@@ -131,19 +150,30 @@ export function SortableTaskCell<TTaskMeta>({
         height,
         transform: CSS.Transform.toString(transform),
         transition,
+        gridTemplateColumns,
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <button
-        className="sokkay-gantt__task-grip"
-        type="button"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical size={14} />
-      </button>
-      <div className="sokkay-gantt__task-label">{children}</div>
+      <div className="sokkay-gantt__task-primary-cell">
+        <button
+          className="sokkay-gantt__task-grip"
+          type="button"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical size={14} />
+        </button>
+        <div className="sokkay-gantt__task-label">{children}</div>
+      </div>
+      {columns.map((column) => (
+        <div
+          className={cx("sokkay-gantt__task-data-cell", column.className)}
+          key={column.id}
+        >
+          {column.content}
+        </div>
+      ))}
     </div>
   );
 }

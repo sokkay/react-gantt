@@ -1,5 +1,11 @@
 # @sokkay/react-gantt
 
+## 0.4.5
+
+_2026-08-03_
+
+- feat: agrega columnas configurables y alineadas para proyectos y tareas en el sidebar
+
 ## 0.4.4
 
 _2026-07-10_

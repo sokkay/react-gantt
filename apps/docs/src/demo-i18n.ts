@@ -17,7 +17,8 @@ export interface DemoCopy {
     clear: string;
     noTaskSelectedTitle: string;
     noTaskSelectedHint: string;
-    projectCellMeta: (taskCount: number, owner: string) => string;
+    details: string;
+    start: string;
     collapsedSummaryMeta: (
       taskCount: number,
       start: string,
@@ -90,8 +91,8 @@ export const demoCopy: Record<DemoLanguage, DemoCopy> = {
       clear: "Clear",
       noTaskSelectedTitle: "No task selected",
       noTaskSelectedHint: "Select a task to inspect it here.",
-      projectCellMeta: (taskCount, owner) =>
-        `${taskCount} ${taskCount === 1 ? "task" : "tasks"} - ${owner}`,
+      details: "Owner / status",
+      start: "Start",
       collapsedSummaryMeta: (taskCount, start, end) =>
         `${taskCount} ${taskCount === 1 ? "task" : "tasks"} - ${start} - ${end}`,
       controlledState: "Controlled state",
@@ -133,8 +134,8 @@ export const demoCopy: Record<DemoLanguage, DemoCopy> = {
       clear: "Limpiar",
       noTaskSelectedTitle: "Ninguna tarea seleccionada",
       noTaskSelectedHint: "Selecciona una tarea para verla aqui.",
-      projectCellMeta: (taskCount, owner) =>
-        `${taskCount} ${taskCount === 1 ? "tarea" : "tareas"} - ${owner}`,
+      details: "Responsable / estado",
+      start: "Inicio",
       collapsedSummaryMeta: (taskCount, start, end) =>
         `${taskCount} ${taskCount === 1 ? "tarea" : "tareas"} - ${start} - ${end}`,
       controlledState: "Estado controlado",

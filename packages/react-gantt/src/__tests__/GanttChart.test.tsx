@@ -161,6 +161,7 @@ describe("GanttChart", () => {
         tasks: [
           {
             id: "t1",
+            projectId: "p1",
             name: "API",
             start: "2026-03-02",
             end: "2026-03-10",
@@ -642,6 +643,77 @@ describe("GanttChart", () => {
 
     expect(screen.getByText("Proyecto")).toBeInTheDocument();
     expect(screen.getByText("Sin seleccion")).toBeInTheDocument();
+  });
+
+  it("renders aligned sidebar columns for project and task rows", () => {
+    const projectsWithMeta: Array<
+      GanttProject<{ owner: string }, { status: string }>
+    > = [
+      {
+        ...projects[0],
+        meta: { owner: "Core" },
+        tasks: projects[0].tasks.map((task) => ({
+          ...task,
+          meta: { status: "In progress" },
+        })),
+      },
+    ];
+    const renderProject = vi.fn(
+      (project, state) => `${project.meta?.owner}:${state.taskCount}`
+    );
+    const renderTask = vi.fn(
+      (task, state) => `${task.meta?.status}:${state.project.id}:${state.index}`
+    );
+    const { container } = render(
+      <GanttChart
+        projects={projectsWithMeta}
+        viewMode="day"
+        layoutMode="tree"
+        sidebarColumns={[
+          {
+            id: "details",
+            header: "Details",
+            width: 120,
+            headerClassName: "details-header",
+            cellClassName: "details-cell",
+            renderProject,
+            renderTask,
+          },
+          {
+            id: "optional",
+            header: "Optional",
+            width: "minmax(80px, 1fr)",
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText("Details")).toHaveClass("details-header");
+    expect(screen.getByText("Core:1")).toHaveClass("details-cell");
+    expect(screen.getByText("In progress:p1:0")).toHaveClass("details-cell");
+    expect(screen.getByText("Optional")).toBeInTheDocument();
+    expect(renderProject).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "p1" }),
+      { collapsed: false, taskCount: 1 }
+    );
+    expect(renderTask).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "t1" }),
+      {
+        project: expect.objectContaining({ id: "p1" }),
+        index: 0,
+      }
+    );
+
+    const headerGrid = container.querySelector(
+      ".sokkay-gantt__sidebar-grid"
+    ) as HTMLElement;
+    expect(headerGrid.style.gridTemplateColumns).toBe(
+      "minmax(0, 1fr) 120px minmax(80px, 1fr)"
+    );
+    expect(
+      (container.querySelector(".sokkay-gantt__task-cell") as HTMLElement).style
+        .gridTemplateColumns
+    ).toBe(headerGrid.style.gridTemplateColumns);
   });
 
   it("formats timeline headers with the provided locale", () => {

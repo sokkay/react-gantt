@@ -19,6 +19,7 @@ export interface DemoCopy {
     noTaskSelectedHint: string;
     details: string;
     start: string;
+    resizeColumn: (column: string) => string;
     collapsedSummaryMeta: (
       taskCount: number,
       start: string,
@@ -93,6 +94,7 @@ export const demoCopy: Record<DemoLanguage, DemoCopy> = {
       noTaskSelectedHint: "Select a task to inspect it here.",
       details: "Owner / status",
       start: "Start",
+      resizeColumn: (column) => `Resize ${column}`,
       collapsedSummaryMeta: (taskCount, start, end) =>
         `${taskCount} ${taskCount === 1 ? "task" : "tasks"} - ${start} - ${end}`,
       controlledState: "Controlled state",
@@ -136,6 +138,7 @@ export const demoCopy: Record<DemoLanguage, DemoCopy> = {
       noTaskSelectedHint: "Selecciona una tarea para verla aqui.",
       details: "Responsable / estado",
       start: "Inicio",
+      resizeColumn: (column) => `Redimensionar ${column}`,
       collapsedSummaryMeta: (taskCount, start, end) =>
         `${taskCount} ${taskCount === 1 ? "tarea" : "tareas"} - ${start} - ${end}`,
       controlledState: "Estado controlado",

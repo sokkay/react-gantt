@@ -318,6 +318,10 @@ export default function App() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>("api");
   const [collapsedProjectIds, setCollapsedProjectIds] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(520);
+  const [sidebarColumnWidths, setSidebarColumnWidths] = useState({
+    details: 140,
+    start: 100,
+  });
   const [eventLog, setEventLog] = useState<string[]>([]);
   const [minDate, setMinDate] = useState<string>("2026-07-01");
   const [maxDate, setMaxDate] = useState<string>("2026-07-31");
@@ -715,14 +719,20 @@ export default function App() {
             {
               id: "details",
               header: copy.strings.details,
-              width: 140,
+              width: sidebarColumnWidths.details,
+              minWidth: 100,
+              resizable: true,
+              resizeAriaLabel: copy.strings.resizeColumn(copy.strings.details),
               renderProject: (project) => project.meta?.owner ?? "—",
               renderTask: (task) => task.meta?.status ?? "—",
             },
             {
               id: "start",
               header: copy.strings.start,
-              width: 100,
+              width: sidebarColumnWidths.start,
+              minWidth: 80,
+              resizable: true,
+              resizeAriaLabel: copy.strings.resizeColumn(copy.strings.start),
               renderProject: (project) => {
                 const start = project.tasks.reduce<Date | null>(
                   (earliest, task) =>
@@ -740,6 +750,14 @@ export default function App() {
                 format(task.start, "MMM d", { locale: copy.locale }),
             },
           ]}
+          onSidebarColumnWidthChange={({ columnId, width }) => {
+            if (columnId === "details" || columnId === "start") {
+              setSidebarColumnWidths((current) => ({
+                ...current,
+                [columnId]: width,
+              }));
+            }
+          }}
           locale={copy.locale}
           labels={copy.labels}
           onTaskMove={handleMove}

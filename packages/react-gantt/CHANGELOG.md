@@ -5,6 +5,7 @@
 _2026-08-03_
 
 - feat: agrega columnas configurables y alineadas para proyectos y tareas en el sidebar
+- feat: permite redimensionar columnas con limites, callbacks controlados y soporte de teclado
 
 ## 0.4.4
 

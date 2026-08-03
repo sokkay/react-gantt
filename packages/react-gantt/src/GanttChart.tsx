@@ -3,6 +3,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { GripVertical } from "lucide-react";
 import type * as React from "react";
 import {
   forwardRef,
@@ -26,6 +27,7 @@ import { DEFAULT_LANE_GAP, DEFAULT_TASK_HEIGHT } from "./constants";
 import { useGanttDragEnd } from "./hooks/useGanttDragEnd";
 import { useGanttModel } from "./hooks/useGanttModel";
 import { useProjectCollapse } from "./hooks/useProjectCollapse";
+import { useSidebarColumnResize } from "./hooks/useSidebarColumnResize";
 import { useSidebarResize } from "./hooks/useSidebarResize";
 import { useTaskPointerInteraction } from "./hooks/useTaskPointerInteraction";
 import type {
@@ -56,6 +58,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     minSidebarWidth,
     onSidebarWidthChange,
     sidebarColumns = [],
+    onSidebarColumnWidthChange,
+    onSidebarColumnResizeEnd,
     className,
     classNames,
     theme,
@@ -112,6 +116,13 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
       onSidebarWidthChange,
     });
   const {
+    handlePointerDown: handleColumnResizeStart,
+    handleKeyDown: handleColumnResizeKeyDown,
+  } = useSidebarColumnResize({
+    onWidthChange: onSidebarColumnWidthChange,
+    onResizeEnd: onSidebarColumnResizeEnd,
+  });
+  const {
     resolvedLabels,
     normalizedProjects,
     timeline,
@@ -140,13 +151,15 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
   const showSelectionToolbar =
     selectionToolbarMode === "static" ||
     (selectionToolbarMode === "auto" && selectedTask);
+  const hasTrailingColumnResizeGutter =
+    sidebarColumns.at(-1)?.resizable === true;
   const sidebarGridTemplateColumns = `minmax(0, 1fr)${sidebarColumns
     .map((column) =>
       typeof column.width === "number"
         ? ` ${column.width}px`
         : ` ${column.width ?? "minmax(96px, 1fr)"}`
     )
-    .join("")}`;
+    .join("")}${hasTrailingColumnResizeGutter ? " 12px" : ""}`;
   const contextActions: ContextMenuActions = {
     close: closeContextMenu,
     select: () => {
@@ -307,9 +320,34 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                   )}
                   key={column.id}
                 >
-                  {column.header}
+                  <span className="sokkay-gantt__project-column-header-content">
+                    {column.header}
+                  </span>
+                  {column.resizable && (
+                    <span
+                      className="sokkay-gantt__column-resize"
+                      role="separator"
+                      aria-label={
+                        column.resizeAriaLabel ?? `Resize ${column.id}`
+                      }
+                      aria-orientation="vertical"
+                      tabIndex={0}
+                      onPointerDown={(event) =>
+                        handleColumnResizeStart(event, column)
+                      }
+                      onKeyDown={(event) =>
+                        handleColumnResizeKeyDown(event, column)
+                      }
+                    />
+                  )}
                 </div>
               ))}
+              {hasTrailingColumnResizeGutter && (
+                <div
+                  className="sokkay-gantt__sidebar-resize-gutter"
+                  aria-hidden="true"
+                />
+              )}
             </div>
             <span
               className="sokkay-gantt__sidebar-resize"
@@ -352,7 +390,13 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                 role="separator"
                 aria-orientation="vertical"
                 onPointerDown={handleSidebarResizeStart}
-              />
+              >
+                <GripVertical
+                  className="sokkay-gantt__sidebar-resize-icon"
+                  size={16}
+                  aria-hidden="true"
+                />
+              </span>
               {topSpacer > 0 && (
                 <div
                   className="sokkay-gantt__virtual-spacer"
@@ -376,6 +420,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       onMouseEnter={() => setHoveredRowId(row.id)}
                       onMouseLeave={() => setHoveredRowId(null)}
                       gridTemplateColumns={sidebarGridTemplateColumns}
+                      trailingResizeGutter={hasTrailingColumnResizeGutter}
                       columns={sidebarColumns.map((column) => ({
                         id: column.id,
                         className: column.cellClassName,
@@ -409,6 +454,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       onMouseEnter={() => setHoveredRowId(row.id)}
                       onMouseLeave={() => setHoveredRowId(null)}
                       gridTemplateColumns={sidebarGridTemplateColumns}
+                      trailingResizeGutter={hasTrailingColumnResizeGutter}
                       columns={sidebarColumns.map((column) => ({
                         id: column.id,
                         className: column.cellClassName,

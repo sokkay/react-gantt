@@ -178,6 +178,14 @@ export interface GanttSidebarColumn<
   header: ReactNode;
   /** CSS grid track width. Numbers are interpreted as pixels. */
   width?: string | number;
+  /** Enables a drag and keyboard resize handle for this column. */
+  resizable?: boolean;
+  /** Minimum width in pixels when the column is resized. Defaults to 48. */
+  minWidth?: number;
+  /** Maximum width in pixels when the column is resized. */
+  maxWidth?: number;
+  /** Accessible label for the column resize handle. */
+  resizeAriaLabel?: string;
   /** Renders the value for a project row. Omit it to leave that row type empty. */
   renderProject?: (
     project: NormalizedGanttProject<TProjectMeta, TTaskMeta>,
@@ -192,6 +200,14 @@ export interface GanttSidebarColumn<
   cellClassName?: string;
   /** Optional class applied to this column's header cell. */
   headerClassName?: string;
+}
+
+/** Payload emitted while or after a sidebar data column is resized. */
+export interface SidebarColumnResizePayload {
+  /** ID of the resized sidebar column. */
+  columnId: string;
+  /** Requested controlled width in pixels. */
+  width: number;
 }
 
 /**
@@ -443,6 +459,10 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   onSidebarWidthChange?: (width: number) => void;
   /** Additional data columns rendered after the primary project/task column. */
   sidebarColumns?: Array<GanttSidebarColumn<TProjectMeta, TTaskMeta>>;
+  /** Called while a resizable sidebar column is dragged or changed with the keyboard. */
+  onSidebarColumnWidthChange?: (payload: SidebarColumnResizePayload) => void;
+  /** Called once when a sidebar column resize interaction ends. */
+  onSidebarColumnResizeEnd?: (payload: SidebarColumnResizePayload) => void;
   /** CSS class applied to the root element. */
   className?: string;
   /** Custom class name overrides for internal Gantt elements. */

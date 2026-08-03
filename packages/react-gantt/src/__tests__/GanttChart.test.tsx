@@ -688,7 +688,9 @@ describe("GanttChart", () => {
       />
     );
 
-    expect(screen.getByText("Details")).toHaveClass("details-header");
+    expect(screen.getByText("Details").parentElement).toHaveClass(
+      "details-header"
+    );
     expect(screen.getByText("Core:1")).toHaveClass("details-cell");
     expect(screen.getByText("In progress:p1:0")).toHaveClass("details-cell");
     expect(screen.getByText("Optional")).toBeInTheDocument();
@@ -714,6 +716,69 @@ describe("GanttChart", () => {
       (container.querySelector(".sokkay-gantt__task-cell") as HTMLElement).style
         .gridTemplateColumns
     ).toBe(headerGrid.style.gridTemplateColumns);
+  });
+
+  it("emits controlled sidebar column resize changes", () => {
+    const onSidebarColumnWidthChange = vi.fn();
+    const onSidebarColumnResizeEnd = vi.fn();
+    const { container } = render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        sidebarColumns={[
+          {
+            id: "details",
+            header: "Details",
+            width: 120,
+            minWidth: 100,
+            maxWidth: 140,
+            resizable: true,
+            resizeAriaLabel: "Resize details",
+          },
+        ]}
+        onSidebarColumnWidthChange={onSidebarColumnWidthChange}
+        onSidebarColumnResizeEnd={onSidebarColumnResizeEnd}
+      />
+    );
+
+    const handle = screen.getByRole("separator", {
+      name: "Resize details",
+    });
+    expect(
+      (container.querySelector(".sokkay-gantt__sidebar-grid") as HTMLElement)
+        .style.gridTemplateColumns
+    ).toBe("minmax(0, 1fr) 120px 12px");
+    expect(
+      container.querySelectorAll(".sokkay-gantt__sidebar-resize-gutter")
+    ).toHaveLength(2);
+    fireEvent(
+      handle,
+      new MouseEvent("pointerdown", { bubbles: true, clientX: 120 })
+    );
+    fireEvent(
+      window,
+      new MouseEvent("pointermove", { bubbles: true, clientX: 180 })
+    );
+    fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
+
+    expect(onSidebarColumnWidthChange).toHaveBeenLastCalledWith({
+      columnId: "details",
+      width: 140,
+    });
+    expect(onSidebarColumnResizeEnd).toHaveBeenLastCalledWith({
+      columnId: "details",
+      width: 140,
+    });
+
+    fireEvent.keyDown(handle, { key: "ArrowLeft" });
+    expect(onSidebarColumnWidthChange).toHaveBeenLastCalledWith({
+      columnId: "details",
+      width: 110,
+    });
+    expect(onSidebarColumnResizeEnd).toHaveBeenLastCalledWith({
+      columnId: "details",
+      width: 110,
+    });
   });
 
   it("formats timeline headers with the provided locale", () => {
@@ -783,6 +848,19 @@ describe("GanttChart", () => {
     fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
 
     expect(onSidebarWidthChange).toHaveBeenLastCalledWith(360);
+  });
+
+  it("renders a centered grip on the main sidebar resize handle", () => {
+    const { container } = render(
+      <GanttChart projects={projects} viewMode="day" />
+    );
+
+    const bodyHandle = container.querySelector(
+      ".sokkay-gantt__sidebar-resize--body"
+    );
+    expect(
+      bodyHandle?.querySelector(".sokkay-gantt__sidebar-resize-icon")
+    ).toBeInTheDocument();
   });
 
   it("preserves last controlled sidebar width when transitioning to uncontrolled mode", () => {

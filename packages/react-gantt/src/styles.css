@@ -131,16 +131,58 @@
   white-space: nowrap;
 }
 
-.sokkay-gantt__project-column-header {
+.sokkay-gantt__sidebar-resize-gutter {
+  height: 100%;
   border-left: 1px solid var(--sg-border);
+  background: var(--sg-surface);
+}
+
+.sokkay-gantt__project-column-header {
+  position: relative;
+  overflow: visible;
+  border-left: 1px solid var(--sg-border);
+}
+
+.sokkay-gantt__project-column-header-content {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sokkay-gantt__column-resize {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  z-index: 20;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.sokkay-gantt__column-resize::after {
+  position: absolute;
+  top: 0;
+  right: 3px;
+  width: 2px;
+  height: 100%;
+  background: transparent;
+  content: "";
+}
+
+.sokkay-gantt__column-resize:hover::after,
+.sokkay-gantt__column-resize:focus-visible::after,
+.sokkay-gantt__column-resize:active::after {
+  background: var(--sg-selected);
 }
 
 .sokkay-gantt__sidebar-resize {
   position: absolute;
   top: 0;
-  right: -4px;
+  right: -7px;
   z-index: 30;
-  width: 8px;
+  width: 14px;
   height: 100%;
   cursor: col-resize;
   touch-action: none;
@@ -149,10 +191,10 @@
 .sokkay-gantt__sidebar-resize::after {
   position: absolute;
   top: 0;
-  right: 3px;
-  width: 2px;
+  right: 5px;
+  width: 4px;
   height: 100%;
-  background: transparent;
+  background: var(--sg-border);
   content: "";
 }
 
@@ -197,7 +239,31 @@
 
 .sokkay-gantt__sidebar-resize--body {
   bottom: 0;
+  display: flex;
   height: auto;
+  align-items: center;
+  justify-content: center;
+}
+
+.sokkay-gantt__sidebar-resize-icon {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  border: 1px solid var(--sg-border);
+  border-radius: 999px;
+  background: var(--sg-surface);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.14);
+  color: var(--sg-muted-text);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.sokkay-gantt__sidebar-resize--body:hover
+  .sokkay-gantt__sidebar-resize-icon,
+.sokkay-gantt__sidebar-resize--body:active
+  .sokkay-gantt__sidebar-resize-icon {
+  opacity: 1;
 }
 
 .sokkay-gantt__project-cell,

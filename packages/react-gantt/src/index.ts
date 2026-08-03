@@ -21,6 +21,7 @@ export type {
   NormalizedGanttTask,
   NormalizedGanttTaskSegment,
   ProjectReorderPayload,
+  SidebarColumnResizePayload,
   TaskContextMenuPayload,
   TaskMovePayload,
   TaskReorderPayload,

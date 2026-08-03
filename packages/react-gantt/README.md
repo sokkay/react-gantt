@@ -195,6 +195,7 @@ Behavior props:
 - `sidebarWidth` / `minSidebarWidth`: fixed project sidebar sizing
 - `onSidebarWidthChange`: receives sidebar resize changes from the drag handle
 - `sidebarColumns`: additional typed columns for project and task rows
+- `onSidebarColumnWidthChange` / `onSidebarColumnResizeEnd`: controlled column resize callbacks
 - `snapTo`: `day`, `week`, `month`, `quarter`, `year` or `none`
 - `showSegmentConnectors`: draw dashed lines between consecutive task segments
 - `virtualized`
@@ -234,9 +235,13 @@ Customization:
 Additional sidebar columns render controlled project and task data after the
 primary cell. Task values appear in `tree` layout. Numeric widths are pixels;
 string widths accept CSS grid tracks. Either renderer can be omitted when a
-column only applies to one row type.
+column only applies to one row type. Set `resizable: true` and update the
+column's `width` from `onSidebarColumnWidthChange` to enable controlled resize;
+keyboard users can resize in 10px steps with the arrow keys.
 
 ```tsx
+const [columnWidths, setColumnWidths] = useState({ details: 140, start: 100 });
+
 <GanttChart
   projects={projects}
   viewMode="month"
@@ -246,20 +251,27 @@ column only applies to one row type.
     {
       id: "details",
       header: "Owner / status",
-      width: 140,
+      width: columnWidths.details,
+      minWidth: 100,
+      resizable: true,
       renderProject: (project) => project.meta?.owner ?? "—",
       renderTask: (task) => task.meta?.status ?? "—",
     },
     {
       id: "start",
       header: "Start",
-      width: "minmax(100px, 1fr)",
+      width: columnWidths.start,
+      minWidth: 80,
+      resizable: true,
       renderProject: (project) =>
         project.tasks[0]?.start.toLocaleDateString() ?? "—",
       renderTask: (task) => task.start.toLocaleDateString(),
     },
   ]}
-/>
+  onSidebarColumnWidthChange={({ columnId, width }) =>
+    setColumnWidths((current) => ({ ...current, [columnId]: width }))
+  }
+/>;
 ```
 
 - `renderTask`

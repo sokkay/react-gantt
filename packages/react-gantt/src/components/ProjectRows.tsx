@@ -22,6 +22,7 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   onMouseLeave,
   columns = [],
   gridTemplateColumns,
+  trailingResizeGutter = false,
 }: {
   project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
   children: React.ReactNode;
@@ -37,6 +38,7 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   onMouseLeave?: () => void;
   columns?: Array<{ id: string; className?: string; content: React.ReactNode }>;
   gridTemplateColumns?: string;
+  trailingResizeGutter?: boolean;
 }) {
   const {
     attributes,
@@ -99,6 +101,12 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
           {column.content}
         </div>
       ))}
+      {trailingResizeGutter && (
+        <div
+          className="sokkay-gantt__sidebar-resize-gutter"
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 }
@@ -114,6 +122,7 @@ export function SortableTaskCell<TTaskMeta>({
   onMouseLeave,
   columns = [],
   gridTemplateColumns,
+  trailingResizeGutter = false,
 }: {
   task: NormalizedGanttTask<TTaskMeta>;
   project: NormalizedGanttProject<unknown, TTaskMeta>;
@@ -125,6 +134,7 @@ export function SortableTaskCell<TTaskMeta>({
   onMouseLeave?: () => void;
   columns?: Array<{ id: string; className?: string; content: React.ReactNode }>;
   gridTemplateColumns?: string;
+  trailingResizeGutter?: boolean;
 }) {
   const {
     attributes,
@@ -174,6 +184,12 @@ export function SortableTaskCell<TTaskMeta>({
           {column.content}
         </div>
       ))}
+      {trailingResizeGutter && (
+        <div
+          className="sokkay-gantt__sidebar-resize-gutter"
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 }

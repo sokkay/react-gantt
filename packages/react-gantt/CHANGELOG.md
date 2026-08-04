@@ -1,6 +1,8 @@
 # @sokkay/react-gantt
 
-## Unreleased
+## 0.5.0
+
+_2026-08-04_
 
 ### Breaking
 

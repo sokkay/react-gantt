@@ -1227,4 +1227,104 @@ describe("GanttChart", () => {
       screen.getByRole("button", { name: "Collapse Platform" })
     ).toBeInTheDocument();
   });
+
+  it("shows the collapse toggle by default when a project has tasks", () => {
+    const onProjectCollapseChange = vi.fn();
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        layoutMode="tree"
+        onProjectCollapseChange={onProjectCollapseChange}
+      />
+    );
+
+    const toggle = screen.getByRole("button", { name: "Collapse Platform" });
+    expect(toggle).toBeInTheDocument();
+    fireEvent.click(toggle);
+    expect(onProjectCollapseChange).toHaveBeenCalledWith("p1", true, ["p1"]);
+  });
+
+  it("hides the collapse toggle when showProjectToggle is false", () => {
+    const onProjectCollapseChange = vi.fn();
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        layoutMode="tree"
+        showProjectToggle={false}
+        onProjectCollapseChange={onProjectCollapseChange}
+      />
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Collapse Platform" })
+    ).not.toBeInTheDocument();
+    expect(
+      document.querySelector(".sokkay-gantt__project-toggle")
+    ).not.toBeInTheDocument();
+    expect(onProjectCollapseChange).not.toHaveBeenCalled();
+  });
+
+  it("evaluates showProjectToggle per project when passed as a function", () => {
+    const multiTaskProjects: GanttProject[] = [
+      {
+        id: "p1",
+        name: "Solo",
+        tasks: [
+          {
+            id: "t1",
+            projectId: "p1",
+            name: "Only task",
+            start: "2026-07-02",
+            end: "2026-07-06",
+          },
+        ],
+      },
+      {
+        id: "p2",
+        name: "Grouped",
+        tasks: [
+          {
+            id: "t2",
+            projectId: "p2",
+            name: "First",
+            start: "2026-07-02",
+            end: "2026-07-04",
+          },
+          {
+            id: "t3",
+            projectId: "p2",
+            name: "Second",
+            start: "2026-07-05",
+            end: "2026-07-07",
+          },
+        ],
+      },
+      {
+        id: "p3",
+        name: "Empty",
+        tasks: [],
+      },
+    ];
+
+    render(
+      <GanttChart
+        projects={multiTaskProjects}
+        viewMode="day"
+        layoutMode="tree"
+        showProjectToggle={(project) => project.tasks.length > 1}
+      />
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Collapse Solo" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Collapse Grouped" })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Collapse Empty" })
+    ).not.toBeInTheDocument();
+  });
 });

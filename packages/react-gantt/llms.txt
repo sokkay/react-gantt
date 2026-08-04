@@ -94,6 +94,9 @@ independently. `showSegmentConnectors` draws dashed links between segments.
 `selectedTaskId`, `onTaskSelect`
 `selectedRows`, `onRowSelectionChange`, `onRowContextMenu`
 `collapsedProjectIds` / `defaultCollapsedProjectIds`, `onProjectCollapseChange`
+`showProjectToggle` (`boolean` | `(project) => boolean`, default `true`) —
+controls the expand/collapse button only. Projects with `tasks.length === 0`
+never show it. Collapse state and imperative methods stay available either way.
 `selectionToolbarMode`: `auto` | `static` | `hidden`
 
 ### Sidebar

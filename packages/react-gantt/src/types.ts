@@ -554,6 +554,16 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   collapsedProjectIds?: string[];
   /** Initial list of collapsed project IDs for uncontrolled mode. */
   defaultCollapsedProjectIds?: string[];
+  /**
+   * Controls visibility of the expand/collapse toggle on project rows.
+   * Defaults to `true`. Projects with no tasks never show the toggle.
+   * Pass `false` to hide it globally, or a predicate to decide per project.
+   * Does not affect `collapsedProjectIds`, `onProjectCollapseChange`, or
+   * imperative collapse/expand/toggle methods.
+   */
+  showProjectToggle?:
+    | boolean
+    | ((project: NormalizedGanttProject<TProjectMeta, TTaskMeta>) => boolean);
   /** Specifies date alignment or snapping behavior during moves/resizes. Defaults to viewMode. */
   snapTo?: GanttViewMode | "none";
   /**

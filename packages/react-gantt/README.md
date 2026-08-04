@@ -52,9 +52,7 @@ export function Example() {
     <>
       <select
         value={viewMode}
-        onChange={(event) =>
-          setViewMode(event.target.value as GanttViewMode)
-        }
+        onChange={(event) => setViewMode(event.target.value as GanttViewMode)}
       >
         <option value="day">Day</option>
         <option value="week">Week</option>
@@ -113,6 +111,25 @@ get a single tree column from `labels.projectHeader`.
 **Sorting:** put a button in `column.header` and reorder `projects` in your
 state. The library does not sort rows internally.
 
+## Project collapse toggle
+
+The expand/collapse control is shown by default for projects that have tasks.
+Hide it globally or decide per project:
+
+```tsx
+<GanttChart projects={projects} viewMode="month" showProjectToggle={false} />
+
+<GanttChart
+  projects={projects}
+  viewMode="month"
+  showProjectToggle={(project) => project.tasks.length > 1}
+/>
+```
+
+Projects with no tasks never show the toggle. Collapse state
+(`collapsedProjectIds` / imperative methods) still works when the control is
+hidden.
+
 ## Documentation for agents / IDEs
 
 When this package is installed from npm, prefer:
@@ -125,6 +142,7 @@ When this package is installed from npm, prefer:
 
 - View modes: `day`, `week`, `month`, `quarter`, `year`
 - Controlled selection, collapse, move, resize, reorder, transfer
+- Optional `showProjectToggle` to hide the expand/collapse control
 - Optional task `segments` and segment connectors
 - Unified sidebar `columns` (`tree` | `data`) with resize
 - Render slots for bars, tooltips, context menu, toolbar, timeline cells

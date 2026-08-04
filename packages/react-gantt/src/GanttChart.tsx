@@ -62,6 +62,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     selectionToolbarMode = "auto",
     collapsedProjectIds,
     defaultCollapsedProjectIds,
+    showProjectToggle = true,
     snapTo = viewMode,
     virtualized = false,
     overscan = 2,
@@ -442,6 +443,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       labels={resolvedLabels}
                       key={row.id}
                       onToggle={() => toggleProject(row.project.id)}
+                      showProjectToggle={showProjectToggle}
                       onMouseEnter={() => setHoveredRowId(row.id)}
                       onMouseLeave={() => setHoveredRowId(null)}
                       onClick={

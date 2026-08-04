@@ -18,6 +18,22 @@ export type SidebarRowColumn = {
   content: React.ReactNode;
 };
 
+function resolveShowProjectToggle<TProjectMeta, TTaskMeta>(
+  project: NormalizedGanttProject<TProjectMeta, TTaskMeta>,
+  showProjectToggle:
+    | boolean
+    | ((
+        project: NormalizedGanttProject<TProjectMeta, TTaskMeta>
+      ) => boolean) = true
+): boolean {
+  if (project.tasks.length === 0) {
+    return false;
+  }
+  return typeof showProjectToggle === "function"
+    ? showProjectToggle(project)
+    : showProjectToggle;
+}
+
 export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   project,
   className,
@@ -25,6 +41,7 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   height,
   labels,
   onToggle,
+  showProjectToggle = true,
   onMouseEnter,
   onMouseLeave,
   onClick,
@@ -42,6 +59,9 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
     "reorderProject" | "collapseProject" | "expandProject"
   >;
   onToggle: () => void;
+  showProjectToggle?:
+    | boolean
+    | ((project: NormalizedGanttProject<TProjectMeta, TTaskMeta>) => boolean);
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
@@ -50,6 +70,7 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   gridTemplateColumns?: string;
   trailingResizeGutter?: boolean;
 }) {
+  const shouldShowToggle = resolveShowProjectToggle(project, showProjectToggle);
   const {
     attributes,
     listeners,
@@ -108,7 +129,7 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
             >
               <GripVertical size={16} />
             </button>
-            {project.tasks.length > 0 ? (
+            {shouldShowToggle ? (
               <button
                 className="sokkay-gantt__project-toggle"
                 type="button"

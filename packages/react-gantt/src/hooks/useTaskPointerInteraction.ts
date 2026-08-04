@@ -214,6 +214,10 @@ export function useTaskPointerInteraction<TProjectMeta, TTaskMeta>({
     task: NormalizedGanttTask<TTaskMeta>,
     segmentId?: string
   ) => {
+    if (event.button !== 0) {
+      return;
+    }
+
     event.preventDefault();
     event.stopPropagation();
 

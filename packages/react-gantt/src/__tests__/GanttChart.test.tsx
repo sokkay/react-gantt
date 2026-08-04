@@ -344,6 +344,48 @@ describe("GanttChart", () => {
     );
   });
 
+  it("only starts task pointer interactions with the left button", () => {
+    const onTaskMove = vi.fn();
+    const onTaskMoveEnd = vi.fn();
+    const onTaskResize = vi.fn();
+    const onTaskResizeEnd = vi.fn();
+
+    render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        onTaskMove={onTaskMove}
+        onTaskMoveEnd={onTaskMoveEnd}
+        onTaskResize={onTaskResize}
+        onTaskResizeEnd={onTaskResizeEnd}
+        renderContextMenu={({ task }) => (
+          <button type="button">Copy {task.name}</button>
+        )}
+      />
+    );
+
+    const task = screen.getByTestId("task-t1");
+    fireEvent.pointerDown(task, { button: 2, clientX: 100 });
+    fireEvent.pointerMove(window, { clientX: 148 });
+    fireEvent.pointerUp(window, { button: 2 });
+
+    fireEvent.pointerDown(
+      task.querySelector(".sokkay-gantt__resize--end") as Element,
+      { button: 2, clientX: 100 }
+    );
+    fireEvent.pointerMove(window, { clientX: 148 });
+    fireEvent.pointerUp(window, { button: 2 });
+
+    expect(onTaskMove).not.toHaveBeenCalled();
+    expect(onTaskMoveEnd).not.toHaveBeenCalled();
+    expect(onTaskResize).not.toHaveBeenCalled();
+    expect(onTaskResizeEnd).not.toHaveBeenCalled();
+
+    fireEvent.contextMenu(task);
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+    expect(screen.getByText("Copy API")).toBeInTheDocument();
+  });
+
   it("passes the right-clicked segment to context menu callbacks", () => {
     const segmentedProjects: GanttProject[] = [
       {

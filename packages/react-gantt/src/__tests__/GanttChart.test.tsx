@@ -176,9 +176,10 @@ describe("GanttChart", () => {
     );
   });
 
-  it("exposes selected project and task rows on right-click", () => {
+  it("preserves multiple selected rows on right-click without reordering", () => {
     const onRowSelectionChange = vi.fn();
     const onRowContextMenu = vi.fn();
+    const onTaskReorder = vi.fn();
     const selectedRows = [
       { type: "project" as const, projectId: "p1" },
       { type: "task" as const, projectId: "p1", taskId: "t1" },
@@ -191,11 +192,21 @@ describe("GanttChart", () => {
         selectedRows={selectedRows}
         onRowSelectionChange={onRowSelectionChange}
         onRowContextMenu={onRowContextMenu}
+        onTaskReorder={onTaskReorder}
       />
     );
 
-    fireEvent.contextMenu(screen.getByTestId("sidebar-task-t1"));
+    const selectedTaskRow = screen.getByTestId("sidebar-task-t1");
+    const taskGrip = selectedTaskRow.querySelector(
+      ".sokkay-gantt__task-grip"
+    ) as Element;
+    fireEvent.pointerDown(taskGrip, { button: 2, clientX: 100, clientY: 100 });
+    fireEvent.pointerMove(window, { clientX: 108, clientY: 108 });
+    fireEvent.pointerUp(window, { button: 2, clientX: 108, clientY: 108 });
+    fireEvent.contextMenu(taskGrip, { clientX: 108, clientY: 108 });
+
     expect(onRowSelectionChange).not.toHaveBeenCalled();
+    expect(onTaskReorder).not.toHaveBeenCalled();
     expect(onRowContextMenu).toHaveBeenLastCalledWith(
       expect.objectContaining({
         row: expect.objectContaining({

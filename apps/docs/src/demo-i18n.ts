@@ -14,6 +14,9 @@ export interface DemoCopy {
     togglePlatform: string;
     selectTask: (name: string) => string;
     shiftOneDay: string;
+    moveSelectedTasks: (count: number) => string;
+    moveToProject: (project: string) => string;
+    multiTransferHint: string;
     clear: string;
     noTaskSelectedTitle: string;
     noTaskSelectedHint: string;
@@ -89,6 +92,11 @@ export const demoCopy: Record<DemoLanguage, DemoCopy> = {
       togglePlatform: "Toggle Platform",
       selectTask: (name) => `Select ${name}`,
       shiftOneDay: "Shift +1 day",
+      moveSelectedTasks: (count) =>
+        `Move ${count} selected ${count === 1 ? "task" : "tasks"}`,
+      moveToProject: (project) => `Move to ${project}`,
+      multiTransferHint:
+        "Select task rows with Ctrl/Cmd and right-click to move them together.",
       clear: "Clear",
       noTaskSelectedTitle: "No task selected",
       noTaskSelectedHint: "Select a task to inspect it here.",
@@ -133,6 +141,11 @@ export const demoCopy: Record<DemoLanguage, DemoCopy> = {
       togglePlatform: "Alternar Platform",
       selectTask: (name) => `Seleccionar ${name}`,
       shiftOneDay: "Mover +1 dia",
+      moveSelectedTasks: (count) =>
+        `Mover ${count} ${count === 1 ? "tarea seleccionada" : "tareas seleccionadas"}`,
+      moveToProject: (project) => `Mover a ${project}`,
+      multiTransferHint:
+        "Selecciona filas de tareas con Ctrl/Cmd y usa el boton derecho para moverlas juntas.",
       clear: "Limpiar",
       noTaskSelectedTitle: "Ninguna tarea seleccionada",
       noTaskSelectedHint: "Selecciona una tarea para verla aqui.",

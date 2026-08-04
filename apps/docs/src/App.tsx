@@ -1,5 +1,6 @@
 import {
   GanttChart,
+  useGanttChart,
   type GanttProject,
   type GanttRowSelection,
   type GanttTask,
@@ -9,18 +10,17 @@ import {
   type TaskReorderPayload,
   type TaskResizePayload,
   type TaskTransferPayload,
-  useGanttChart,
 } from "@sokkay/react-gantt";
 import "@sokkay/react-gantt/styles.css";
 import { addDays, format } from "date-fns";
 import { useMemo, useRef, useState } from "react";
+import "./App.css";
 import {
   demoCopy,
   demoLanguages,
   type DemoCopy,
   type DemoLanguage,
 } from "./demo-i18n";
-import "./App.css";
 
 const viewModes: GanttViewMode[] = ["day", "week", "month", "quarter", "year"];
 
@@ -217,6 +217,21 @@ import "@sokkay/react-gantt/styles.css";
 />;`,
   },
   {
+    title: "Multi-row transfer",
+    code: `<GanttChart
+  projects={projects}
+  selectedRows={selectedRows}
+  onRowSelectionChange={({ selectedRows }) => setSelectedRows(selectedRows)}
+  onRowContextMenu={({ selectedRows, event }) => {
+    const taskIds = selectedRows
+      .filter((row) => row.type === "task")
+      .map((row) => row.taskId);
+
+    openTransferMenu({ taskIds, x: event.clientX, y: event.clientY });
+  }}
+/>`,
+  },
+  {
     title: "Imperative operations",
     code: `const ganttRef = useGanttChart();
 
@@ -318,6 +333,11 @@ export default function App() {
   );
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>("api");
   const [selectedRows, setSelectedRows] = useState<GanttRowSelection[]>([]);
+  const [rowTransferMenu, setRowTransferMenu] = useState<{
+    x: number;
+    y: number;
+    taskIds: string[];
+  } | null>(null);
   const [collapsedProjectIds, setCollapsedProjectIds] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(520);
   const [sidebarColumnWidths, setSidebarColumnWidths] = useState({
@@ -378,6 +398,8 @@ export default function App() {
       setShowSegmentConnectors(false);
     }
     setCollapsedProjectIds([]);
+    setSelectedRows([]);
+    setRowTransferMenu(null);
     setEventLog([]);
   };
 
@@ -456,6 +478,64 @@ export default function App() {
       )
     );
     pushLog(`reorder task ${payload.taskId} -> ${payload.toIndex}`);
+  };
+
+  const transferSelectedTasks = (toProjectId: string) => {
+    if (!rowTransferMenu) {
+      return;
+    }
+
+    const taskSourceById = new Map(
+      projects.flatMap((project) =>
+        project.tasks.map((task) => [task.id, project.id] as const)
+      )
+    );
+    const movingTaskIds = rowTransferMenu.taskIds.filter(
+      (taskId) => taskSourceById.get(taskId) !== toProjectId
+    );
+    const movingTaskIdSet = new Set(movingTaskIds);
+
+    if (movingTaskIds.length === 0) {
+      setRowTransferMenu(null);
+      return;
+    }
+
+    setProjects((items) => {
+      const movingTasks = items.flatMap((project) =>
+        project.id === toProjectId
+          ? []
+          : project.tasks.filter((task) => movingTaskIdSet.has(task.id))
+      );
+
+      return items.map((project) => {
+        if (project.id === toProjectId) {
+          return {
+            ...project,
+            tasks: [
+              ...project.tasks,
+              ...movingTasks.map((task) => ({
+                ...task,
+                projectId: toProjectId,
+              })),
+            ],
+          };
+        }
+
+        return {
+          ...project,
+          tasks: project.tasks.filter((task) => !movingTaskIdSet.has(task.id)),
+        };
+      });
+    });
+    setSelectedRows((rows) =>
+      rows.map((row) =>
+        row.type === "task" && movingTaskIdSet.has(row.taskId)
+          ? { ...row, projectId: toProjectId }
+          : row
+      )
+    );
+    pushLog(`transfer rows ${movingTaskIds.join(",")} -> ${toProjectId}`);
+    setRowTransferMenu(null);
   };
 
   return (
@@ -701,6 +781,7 @@ export default function App() {
       </section>
 
       <section className="gantt-panel">
+        <p className="row-transfer-hint">{copy.strings.multiTransferHint}</p>
         <GanttChart
           ref={ganttRef}
           projects={projects}
@@ -795,18 +876,33 @@ export default function App() {
               }`
             );
           }}
-          onRowContextMenu={({ row, selectedRows: rows }) => {
+          onRowContextMenu={({ row, selectedRows: rows, event }) => {
             const rowId = row.type === "project" ? row.project.id : row.task.id;
             pushLog(`context row ${rowId} [${rows.length}]`);
+            const taskIds = rows.flatMap((selectedRow) =>
+              selectedRow.type === "task" ? [selectedRow.taskId] : []
+            );
+
+            if (taskIds.length > 0) {
+              setRowTransferMenu({
+                x: Math.max(
+                  8,
+                  Math.min(event.clientX, window.innerWidth - 240)
+                ),
+                y: Math.max(
+                  8,
+                  Math.min(event.clientY, window.innerHeight - 220)
+                ),
+                taskIds,
+              });
+            }
           }}
           onTaskSelect={(task) => {
             setSelectedTaskId(task?.id ?? null);
             pushLog(`select ${task?.id ?? "null"}`);
           }}
           onTaskContextMenu={({ task, segment }) =>
-            pushLog(
-              `context ${task.id}${segment ? `:${segment.id}` : ""}`
-            )
+            pushLog(`context ${task.id}${segment ? `:${segment.id}` : ""}`)
           }
           renderProjectCell={(project, state) => (
             <span>
@@ -904,6 +1000,44 @@ export default function App() {
             </>
           )}
         />
+        {rowTransferMenu && (
+          <div
+            className="row-transfer-menu-layer"
+            onPointerDown={() => setRowTransferMenu(null)}
+          >
+            <div
+              className="row-transfer-menu"
+              role="menu"
+              aria-label={copy.strings.moveSelectedTasks(
+                rowTransferMenu.taskIds.length
+              )}
+              style={{ left: rowTransferMenu.x, top: rowTransferMenu.y }}
+              onPointerDown={(event) => event.stopPropagation()}
+            >
+              <strong>
+                {copy.strings.moveSelectedTasks(rowTransferMenu.taskIds.length)}
+              </strong>
+              {projects.map((project) => {
+                const movableCount = rowTransferMenu.taskIds.filter(
+                  (taskId) => !project.tasks.some((task) => task.id === taskId)
+                ).length;
+
+                return (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled={movableCount === 0}
+                    key={project.id}
+                    onClick={() => transferSelectedTasks(project.id)}
+                  >
+                    {copy.strings.moveToProject(project.name)}
+                    <span>{movableCount}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="code-examples">

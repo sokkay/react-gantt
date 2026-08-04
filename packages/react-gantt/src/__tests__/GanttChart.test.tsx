@@ -913,9 +913,11 @@ describe("GanttChart", () => {
         projects={projectsWithMeta}
         viewMode="day"
         layoutMode="tree"
-        sidebarColumns={[
+        columns={[
+          { id: "project", kind: "tree", header: "Project" },
           {
             id: "details",
+            kind: "data",
             header: "Details",
             width: 120,
             headerClassName: "details-header",
@@ -925,6 +927,7 @@ describe("GanttChart", () => {
           },
           {
             id: "optional",
+            kind: "data",
             header: "Optional",
             width: "minmax(80px, 1fr)",
           },
@@ -970,9 +973,11 @@ describe("GanttChart", () => {
       <GanttChart
         projects={projects}
         viewMode="day"
-        sidebarColumns={[
+        columns={[
+          { id: "project", kind: "tree", header: "Project" },
           {
             id: "details",
+            kind: "data",
             header: "Details",
             width: 120,
             minWidth: 100,
@@ -1024,6 +1029,35 @@ describe("GanttChart", () => {
       columnId: "details",
       width: 110,
     });
+  });
+
+  it("allows reordering the tree column among data columns", () => {
+    const { container } = render(
+      <GanttChart
+        projects={projects}
+        viewMode="day"
+        columns={[
+          {
+            id: "owner",
+            kind: "data",
+            header: "Owner",
+            width: 80,
+            renderProject: () => "Core",
+          },
+          { id: "project", kind: "tree", header: "Name", width: 160 },
+        ]}
+      />
+    );
+
+    const headerGrid = container.querySelector(
+      ".sokkay-gantt__sidebar-grid"
+    ) as HTMLElement;
+    expect(headerGrid.style.gridTemplateColumns).toBe("80px 160px");
+    expect(screen.getByText("Owner")).toBeInTheDocument();
+    expect(screen.getByText("Name")).toBeInTheDocument();
+    expect(
+      container.querySelector(".sokkay-gantt__project-primary-cell")
+    ).not.toBeNull();
   });
 
   it("formats timeline headers with the provided locale", () => {

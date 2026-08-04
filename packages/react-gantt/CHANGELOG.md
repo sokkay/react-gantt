@@ -1,5 +1,58 @@
 # @sokkay/react-gantt
 
+## Unreleased
+
+### Breaking
+
+- **Sidebar columns are unified under `columns`.** There is no longer an implicit
+  primary Projects column plus `sidebarColumns`.
+  - Removed: `sidebarColumns`, `renderSidebarHeader`, `renderProjectCell`,
+    `renderSidebarTaskCell`
+  - Added: `columns` with `kind: "tree" | "data"`
+  - When `columns` is omitted, a single tree column is created from
+    `labels.projectHeader`
+
+#### Migration
+
+```tsx
+// Before
+<GanttChart
+  renderSidebarHeader={() => "Project"}
+  renderProjectCell={(project) => project.name}
+  renderSidebarTaskCell={(task) => task.name}
+  sidebarColumns={[
+    { id: "start", header: "Start", renderTask: (task) => ... },
+  ]}
+/>
+
+// After
+<GanttChart
+  columns={[
+    {
+      id: "project",
+      kind: "tree",
+      header: "Project",
+      renderProject: (project) => project.name,
+      renderTask: (task) => task.name,
+    },
+    {
+      id: "start",
+      kind: "data",
+      header: "Start",
+      renderTask: (task) => ...,
+    },
+  ]}
+/>
+```
+
+Sorting stays host-controlled: put a control in `column.header` and reorder
+`projects` in your state.
+
+### Docs
+
+- Publish `llms.txt` with the npm package for agent/IDE context
+- Slim package README; point consumers to `llms.txt` + `dist/index.d.ts`
+
 ## 0.4.5
 
 _2026-08-03_

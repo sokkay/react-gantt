@@ -5,14 +5,21 @@ import { ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 import type * as React from "react";
 import type {
   GanttLabels,
+  GanttSidebarColumnKind,
   NormalizedGanttProject,
   NormalizedGanttTask,
 } from "../types";
 import { cx } from "../utils/cx";
 
+export type SidebarRowColumn = {
+  id: string;
+  kind: GanttSidebarColumnKind;
+  className?: string;
+  content: React.ReactNode;
+};
+
 export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   project,
-  children,
   className,
   collapsed,
   height,
@@ -27,7 +34,6 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   trailingResizeGutter = false,
 }: {
   project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
-  children: React.ReactNode;
   className?: string;
   collapsed: boolean;
   height: number;
@@ -40,7 +46,7 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   onMouseLeave?: () => void;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
   onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
-  columns?: Array<{ id: string; className?: string; content: React.ReactNode }>;
+  columns?: SidebarRowColumn[];
   gridTemplateColumns?: string;
   trailingResizeGutter?: boolean;
 }) {
@@ -84,40 +90,53 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
       onContextMenu={onContextMenu}
       data-testid={`project-${project.id}`}
     >
-      <div className="sokkay-gantt__project-primary-cell">
-        <button
-          className="sokkay-gantt__project-grip"
-          type="button"
-          aria-label={labels.reorderProject(project)}
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical size={16} />
-        </button>
-        {project.tasks.length > 0 ? (
-          <button
-            className="sokkay-gantt__project-toggle"
-            type="button"
-            aria-label={
-              collapsed
-                ? labels.expandProject(project)
-                : labels.collapseProject(project)
-            }
-            onClick={onToggle}
+      {columns.map((column) =>
+        column.kind === "tree" ? (
+          <div
+            className={cx(
+              "sokkay-gantt__project-primary-cell",
+              column.className
+            )}
+            key={column.id}
           >
-            {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-          </button>
-        ) : null}
-        <div className="sokkay-gantt__project-label">{children}</div>
-      </div>
-      {columns.map((column) => (
-        <div
-          className={cx("sokkay-gantt__project-data-cell", column.className)}
-          key={column.id}
-        >
-          {column.content}
-        </div>
-      ))}
+            <button
+              className="sokkay-gantt__project-grip"
+              type="button"
+              aria-label={labels.reorderProject(project)}
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical size={16} />
+            </button>
+            {project.tasks.length > 0 ? (
+              <button
+                className="sokkay-gantt__project-toggle"
+                type="button"
+                aria-label={
+                  collapsed
+                    ? labels.expandProject(project)
+                    : labels.collapseProject(project)
+                }
+                onClick={onToggle}
+              >
+                {collapsed ? (
+                  <ChevronRight size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
+              </button>
+            ) : null}
+            <div className="sokkay-gantt__project-label">{column.content}</div>
+          </div>
+        ) : (
+          <div
+            className={cx("sokkay-gantt__project-data-cell", column.className)}
+            key={column.id}
+          >
+            {column.content}
+          </div>
+        )
+      )}
       {trailingResizeGutter && (
         <div
           className="sokkay-gantt__sidebar-resize-gutter"
@@ -131,7 +150,6 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
 export function SortableTaskCell<TTaskMeta>({
   task,
   project,
-  children,
   className,
   height,
   index,
@@ -145,7 +163,6 @@ export function SortableTaskCell<TTaskMeta>({
 }: {
   task: NormalizedGanttTask<TTaskMeta>;
   project: NormalizedGanttProject<unknown, TTaskMeta>;
-  children: React.ReactNode;
   className?: string;
   height: number;
   index: number;
@@ -153,7 +170,7 @@ export function SortableTaskCell<TTaskMeta>({
   onMouseLeave?: () => void;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
   onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
-  columns?: Array<{ id: string; className?: string; content: React.ReactNode }>;
+  columns?: SidebarRowColumn[];
   gridTemplateColumns?: string;
   trailingResizeGutter?: boolean;
 }) {
@@ -197,25 +214,31 @@ export function SortableTaskCell<TTaskMeta>({
       onContextMenu={onContextMenu}
       data-testid={`sidebar-task-${task.id}`}
     >
-      <div className="sokkay-gantt__task-primary-cell">
-        <button
-          className="sokkay-gantt__task-grip"
-          type="button"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical size={14} />
-        </button>
-        <div className="sokkay-gantt__task-label">{children}</div>
-      </div>
-      {columns.map((column) => (
-        <div
-          className={cx("sokkay-gantt__task-data-cell", column.className)}
-          key={column.id}
-        >
-          {column.content}
-        </div>
-      ))}
+      {columns.map((column) =>
+        column.kind === "tree" ? (
+          <div
+            className={cx("sokkay-gantt__task-primary-cell", column.className)}
+            key={column.id}
+          >
+            <button
+              className="sokkay-gantt__task-grip"
+              type="button"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical size={14} />
+            </button>
+            <div className="sokkay-gantt__task-label">{column.content}</div>
+          </div>
+        ) : (
+          <div
+            className={cx("sokkay-gantt__task-data-cell", column.className)}
+            key={column.id}
+          >
+            {column.content}
+          </div>
+        )
+      )}
       {trailingResizeGutter && (
         <div
           className="sokkay-gantt__sidebar-resize-gutter"

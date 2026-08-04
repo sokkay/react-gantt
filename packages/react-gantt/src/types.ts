@@ -169,16 +169,29 @@ export interface GanttTaskCellState<
 }
 
 /**
- * An additional data column rendered in the sidebar.
- * Project and task data remain controlled by the consumer; columns only render it.
+ * Sidebar column role.
+ * - `"tree"`: primary project/task column with reorder grip and collapse toggle.
+ * - `"data"`: value column that only renders consumer-provided content.
  */
-export interface GanttSidebarColumn<
-  TProjectMeta = unknown,
-  TTaskMeta = unknown,
-> {
+export type GanttSidebarColumnKind = "tree" | "data";
+
+/** Shared sizing and header fields for every sidebar column. */
+export interface GanttSidebarColumnBase {
   /** Stable identifier used as the React key for the column. */
   id: string;
-  /** Content rendered in the column header. */
+  /**
+   * Content rendered in the column header.
+   * Pass a button (or other control) here to implement controlled sorting in the host app.
+   *
+   * @example
+   * ```tsx
+   * header: (
+   *   <button type="button" onClick={() => toggleSort("start")}>
+   *     Start {sortDir === "asc" ? "↑" : "↓"}
+   *   </button>
+   * )
+   * ```
+   */
   header: ReactNode;
   /** CSS grid track width. Numbers are interpreted as pixels. */
   width?: string | number;
@@ -190,21 +203,76 @@ export interface GanttSidebarColumn<
   maxWidth?: number;
   /** Accessible label for the column resize handle. */
   resizeAriaLabel?: string;
-  /** Renders the value for a project row. Omit it to leave that row type empty. */
-  renderProject?: (
-    project: NormalizedGanttProject<TProjectMeta, TTaskMeta>,
-    state: GanttProjectCellState
-  ) => ReactNode;
-  /** Renders the value for a task row in tree layout. Omit it to leave that row type empty. */
-  renderTask?: (
-    task: NormalizedGanttTask<TTaskMeta>,
-    state: GanttTaskCellState<TProjectMeta, TTaskMeta>
-  ) => ReactNode;
   /** Optional class applied to every project and task value cell in this column. */
   cellClassName?: string;
   /** Optional class applied to this column's header cell. */
   headerClassName?: string;
 }
+
+/**
+ * Tree column: renders the project/task identity row chrome (grip, collapse, label).
+ * Omit `renderProject` / `renderTask` to use `project.name` / `task.name`.
+ */
+export interface GanttTreeSidebarColumn<
+  TProjectMeta = unknown,
+  TTaskMeta = unknown,
+> extends GanttSidebarColumnBase {
+  kind: "tree";
+  /** Renders the project label area. Defaults to `project.name`. */
+  renderProject?: (
+    project: NormalizedGanttProject<TProjectMeta, TTaskMeta>,
+    state: GanttProjectCellState
+  ) => ReactNode;
+  /** Renders the task label area in tree layout. Defaults to `task.name`. */
+  renderTask?: (
+    task: NormalizedGanttTask<TTaskMeta>,
+    state: GanttTaskCellState<TProjectMeta, TTaskMeta>
+  ) => ReactNode;
+}
+
+/**
+ * Data column: renders optional project/task values. Omit a renderer to leave
+ * that row type empty.
+ */
+export interface GanttDataSidebarColumn<
+  TProjectMeta = unknown,
+  TTaskMeta = unknown,
+> extends GanttSidebarColumnBase {
+  kind: "data";
+  /** Renders the value for a project row. */
+  renderProject?: (
+    project: NormalizedGanttProject<TProjectMeta, TTaskMeta>,
+    state: GanttProjectCellState
+  ) => ReactNode;
+  /** Renders the value for a task row in tree layout. */
+  renderTask?: (
+    task: NormalizedGanttTask<TTaskMeta>,
+    state: GanttTaskCellState<TProjectMeta, TTaskMeta>
+  ) => ReactNode;
+}
+
+/**
+ * A sidebar column. Pass an ordered `columns` array to control which columns
+ * appear and in which order. When `columns` is omitted, a single tree column
+ * is created from `labels.projectHeader`.
+ *
+ * @example
+ * ```tsx
+ * columns={[
+ *   { id: "project", kind: "tree", header: "Project" },
+ *   {
+ *     id: "start",
+ *     kind: "data",
+ *     header: "Start",
+ *     width: 100,
+ *     renderTask: (task) => task.start.toLocaleDateString(),
+ *   },
+ * ]}
+ * ```
+ */
+export type GanttSidebarColumn<TProjectMeta = unknown, TTaskMeta = unknown> =
+  | GanttTreeSidebarColumn<TProjectMeta, TTaskMeta>
+  | GanttDataSidebarColumn<TProjectMeta, TTaskMeta>;
 
 /** Payload emitted while or after a sidebar data column is resized. */
 export interface SidebarColumnResizePayload {
@@ -218,7 +286,10 @@ export interface SidebarColumnResizePayload {
  * Localized text labels and accessibility aria-labels used throughout the Gantt chart.
  */
 export interface GanttLabels<TProjectMeta = unknown, TTaskMeta = unknown> {
-  /** Header label for the project/sidebar column. */
+  /**
+   * Default header for the built-in tree column when `columns` is omitted.
+   * Ignored when you pass an explicit `columns` array (set `header` there).
+   */
   projectHeader: string;
   /** Message shown in the detail panel/toolbar when no task is selected. */
   noTaskSelected: string;
@@ -502,8 +573,15 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   minSidebarWidth?: string | number;
   /** Callback triggered when the sidebar width changes via dragging the resize handle. */
   onSidebarWidthChange?: (width: number) => void;
-  /** Additional data columns rendered after the primary project/task column. */
-  sidebarColumns?: Array<GanttSidebarColumn<TProjectMeta, TTaskMeta>>;
+  /**
+   * Ordered sidebar columns. Include a `kind: "tree"` column for project/task
+   * chrome (grip, collapse, name). When omitted, a single tree column is
+   * created from `labels.projectHeader`.
+   *
+   * Sorting is controlled by the consumer: put a clickable control in
+   * `column.header` and reorder `projects` in your state.
+   */
+  columns?: Array<GanttSidebarColumn<TProjectMeta, TTaskMeta>>;
   /** Called while a resizable sidebar column is dragged or changed with the keyboard. */
   onSidebarColumnWidthChange?: (payload: SidebarColumnResizePayload) => void;
   /** Called once when a sidebar column resize interaction ends. */
@@ -520,11 +598,6 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   locale?: Locale;
   /** Layout mode of the Gantt chart: 'compact' renders tasks packed in lanes, 'tree' renders tasks on their own rows under projects. */
   layoutMode?: "compact" | "tree";
-  /** Custom render function for rendering task cells in the sidebar (only in tree mode). */
-  renderSidebarTaskCell?: (
-    task: NormalizedGanttTask<TTaskMeta>,
-    state: GanttTaskCellState<TProjectMeta, TTaskMeta>
-  ) => ReactNode;
   /** Event callback triggered when a task is moved (dragged horizontally). */
   onTaskMove?: (payload: TaskMovePayload) => void;
   /**
@@ -589,13 +662,6 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   ) => ReactNode;
   /** Custom render function for the selection toolbar shown when no task is selected. */
   renderEmptySelectionToolbar?: (actions: ContextMenuActions) => ReactNode;
-  /** Custom render function for project rows inside the sidebar column. */
-  renderProjectCell?: (
-    project: NormalizedGanttProject<TProjectMeta, TTaskMeta>,
-    state: GanttProjectCellState
-  ) => ReactNode;
-  /** Custom render function for the header cell of the sidebar. */
-  renderSidebarHeader?: () => ReactNode;
   /** Custom render function for individual timeline header cells. */
   renderHeaderCell?: (cell: {
     id: string;

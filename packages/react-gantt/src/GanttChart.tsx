@@ -44,6 +44,10 @@ import type {
   NormalizedGanttTaskSegment,
 } from "./types";
 import { getCollapsedProjectSummary } from "./utils/collapsed-summary";
+import {
+  getSidebarGridTemplateColumns,
+  resolveSidebarColumns,
+} from "./utils/columns";
 import { cx } from "./utils/cx";
 import { normalizeDate } from "./utils/dates";
 import { createThemeStyle } from "./utils/theme";
@@ -64,7 +68,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     sidebarWidth,
     minSidebarWidth,
     onSidebarWidthChange,
-    sidebarColumns = [],
+    columns: columnsProp,
     onSidebarColumnWidthChange,
     onSidebarColumnResizeEnd,
     className,
@@ -77,7 +81,6 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     maxDate,
     layoutMode = "compact",
     showSegmentConnectors = false,
-    renderSidebarTaskCell,
     onTaskMove,
     onTaskMoveEnd,
     onTaskResize,
@@ -95,8 +98,6 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     renderContextMenu,
     renderSelectionToolbar,
     renderEmptySelectionToolbar,
-    renderProjectCell,
-    renderSidebarHeader,
     renderHeaderCell,
     renderTimelineCell,
     renderCollapsedProjectSummary,
@@ -162,15 +163,12 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     (selectionToolbarMode === "auto" && selectedTask);
   const { emitSelection, isRowSelected, resolveSelection, selectRow } =
     useRowSelection({ flatRows, selectedRows, onRowSelectionChange });
-  const hasTrailingColumnResizeGutter =
-    sidebarColumns.at(-1)?.resizable === true;
-  const sidebarGridTemplateColumns = `minmax(0, 1fr)${sidebarColumns
-    .map((column) =>
-      typeof column.width === "number"
-        ? ` ${column.width}px`
-        : ` ${column.width ?? "minmax(96px, 1fr)"}`
-    )
-    .join("")}${hasTrailingColumnResizeGutter ? " 12px" : ""}`;
+  const columns = resolveSidebarColumns(
+    columnsProp,
+    resolvedLabels.projectHeader
+  );
+  const hasTrailingColumnResizeGutter = columns.at(-1)?.resizable === true;
+  const sidebarGridTemplateColumns = getSidebarGridTemplateColumns(columns);
   const contextActions: ContextMenuActions = {
     close: closeContextMenu,
     select: () => {
@@ -336,15 +334,12 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
               className="sokkay-gantt__sidebar-grid"
               style={{ gridTemplateColumns: sidebarGridTemplateColumns }}
             >
-              <div className="sokkay-gantt__sidebar-primary-header">
-                {renderSidebarHeader
-                  ? renderSidebarHeader()
-                  : resolvedLabels.projectHeader}
-              </div>
-              {sidebarColumns.map((column) => (
+              {columns.map((column) => (
                 <div
                   className={cx(
-                    "sokkay-gantt__project-column-header",
+                    column.kind === "tree"
+                      ? "sokkay-gantt__sidebar-primary-header"
+                      : "sokkay-gantt__project-column-header",
                     column.headerClassName
                   )}
                   key={column.id}
@@ -467,24 +462,25 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       }
                       gridTemplateColumns={sidebarGridTemplateColumns}
                       trailingResizeGutter={hasTrailingColumnResizeGutter}
-                      columns={sidebarColumns.map((column) => ({
-                        id: column.id,
-                        className: column.cellClassName,
-                        content: column.renderProject?.(row.project, {
+                      columns={columns.map((column) => {
+                        const state = {
                           collapsed: row.collapsed,
                           taskCount: row.project.tasks.length,
                           selected: isRowSelected(row),
-                        }),
-                      }))}
-                    >
-                      {renderProjectCell
-                        ? renderProjectCell(row.project, {
-                            collapsed: row.collapsed,
-                            taskCount: row.project.tasks.length,
-                            selected: isRowSelected(row),
-                          })
-                        : row.project.name}
-                    </SortableProjectCell>
+                        };
+
+                        return {
+                          id: column.id,
+                          kind: column.kind,
+                          className: column.cellClassName,
+                          content:
+                            column.kind === "tree"
+                              ? (column.renderProject?.(row.project, state) ??
+                                row.project.name)
+                              : column.renderProject?.(row.project, state),
+                        };
+                      })}
+                    />
                   );
                 } else {
                   return (
@@ -519,24 +515,25 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       }
                       gridTemplateColumns={sidebarGridTemplateColumns}
                       trailingResizeGutter={hasTrailingColumnResizeGutter}
-                      columns={sidebarColumns.map((column) => ({
-                        id: column.id,
-                        className: column.cellClassName,
-                        content: column.renderTask?.(row.task, {
+                      columns={columns.map((column) => {
+                        const state = {
                           project: row.project,
                           index: row.index,
                           selected: isRowSelected(row),
-                        }),
-                      }))}
-                    >
-                      {renderSidebarTaskCell
-                        ? renderSidebarTaskCell(row.task, {
-                            project: row.project,
-                            index: row.index,
-                            selected: isRowSelected(row),
-                          })
-                        : row.task.name}
-                    </SortableTaskCell>
+                        };
+
+                        return {
+                          id: column.id,
+                          kind: column.kind,
+                          className: column.cellClassName,
+                          content:
+                            column.kind === "tree"
+                              ? (column.renderTask?.(row.task, state) ??
+                                row.task.name)
+                              : column.renderTask?.(row.task, state),
+                        };
+                      })}
+                    />
                   );
                 }
               })}

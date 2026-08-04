@@ -6,6 +6,7 @@ export type {
   GanttChartHandle,
   GanttChartProps,
   GanttClassNames,
+  GanttDataSidebarColumn,
   GanttDateInput,
   GanttLabels,
   GanttProject,
@@ -14,10 +15,13 @@ export type {
   GanttRowSelection,
   GanttSelectionToolbarMode,
   GanttSidebarColumn,
+  GanttSidebarColumnBase,
+  GanttSidebarColumnKind,
   GanttTask,
   GanttTaskCellState,
   GanttTaskSegment,
   GanttTheme,
+  GanttTreeSidebarColumn,
   GanttViewMode,
   NormalizedGanttProject,
   NormalizedGanttTask,
@@ -33,6 +37,12 @@ export type {
   TaskTransferPayload,
 } from "./types";
 export { useGanttChart } from "./useGanttChart";
+export {
+  DEFAULT_TREE_COLUMN_ID,
+  getDefaultSidebarColumns,
+  getSidebarGridTemplateColumns,
+  resolveSidebarColumns,
+} from "./utils/columns";
 export {
   addViewUnits,
   diffViewUnits,

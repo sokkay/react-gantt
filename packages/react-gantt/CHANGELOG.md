@@ -1,5 +1,11 @@
 # @sokkay/react-gantt
 
+## 0.5.1
+
+_2026-08-04_
+
+- feat: add showProjectToggle to hide project expand/collapse control
+
 ## 0.5.0
 
 _2026-08-04_

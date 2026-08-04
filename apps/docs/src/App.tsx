@@ -344,6 +344,8 @@ export default function App() {
     details: 140,
     start: 100,
   });
+  const [sortKey, setSortKey] = useState<"name" | "start" | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [eventLog, setEventLog] = useState<string[]>([]);
   const [minDate, setMinDate] = useState<string>("2026-07-01");
   const [maxDate, setMaxDate] = useState<string>("2026-07-31");
@@ -369,6 +371,77 @@ export default function App() {
         .find((task) => task.id === selectedTaskId),
     [projects, selectedTaskId]
   );
+
+  const toggleColumnSort = (key: "name" | "start") => {
+    if (sortKey === key) {
+      setSortDir((current) => (current === "asc" ? "desc" : "asc"));
+      return;
+    }
+
+    setSortKey(key);
+    setSortDir("asc");
+  };
+
+  const sortMarker = (key: "name" | "start") => {
+    if (sortKey !== key) {
+      return "";
+    }
+
+    return sortDir === "asc" ? " ↑" : " ↓";
+  };
+
+  const displayedProjects = useMemo(() => {
+    if (!sortKey) {
+      return projects;
+    }
+
+    const direction = sortDir === "asc" ? 1 : -1;
+    const projectStartTime = (
+      project: (typeof projects)[number]
+    ): number | null => {
+      if (project.tasks.length === 0) {
+        return null;
+      }
+
+      return Math.min(
+        ...project.tasks.map((task) => new Date(task.start).getTime())
+      );
+    };
+
+    return [...projects]
+      .map((project) => ({
+        ...project,
+        tasks: [...project.tasks].sort((left, right) => {
+          if (sortKey === "name") {
+            return left.name.localeCompare(right.name) * direction;
+          }
+
+          return (
+            (new Date(left.start).getTime() -
+              new Date(right.start).getTime()) *
+            direction
+          );
+        }),
+      }))
+      .sort((left, right) => {
+        if (sortKey === "name") {
+          return left.name.localeCompare(right.name) * direction;
+        }
+
+        const leftStart = projectStartTime(left);
+        const rightStart = projectStartTime(right);
+        if (leftStart === null && rightStart === null) {
+          return 0;
+        }
+        if (leftStart === null) {
+          return 1;
+        }
+        if (rightStart === null) {
+          return -1;
+        }
+        return (leftStart - rightStart) * direction;
+      });
+  }, [projects, sortDir, sortKey]);
 
   const pushLog = (message: string) => {
     if (!logEventsRef.current) {
@@ -463,6 +536,7 @@ export default function App() {
   const handleTaskReorder = (
     payload: TaskReorderPayload<{ status: string }>
   ) => {
+    setSortKey(null);
     setProjects((items) =>
       items.map((project) =>
         project.id === payload.projectId
@@ -784,7 +858,7 @@ export default function App() {
         <p className="row-transfer-hint">{copy.strings.multiTransferHint}</p>
         <GanttChart
           ref={ganttRef}
-          projects={projects}
+          projects={displayedProjects}
           viewMode={viewMode}
           layoutMode={layoutMode}
           minDate={resolvedMinDate}
@@ -799,9 +873,30 @@ export default function App() {
           sidebarWidth={sidebarWidth}
           minSidebarWidth={240}
           onSidebarWidthChange={setSidebarWidth}
-          sidebarColumns={[
+          columns={[
+            {
+              id: "project",
+              kind: "tree",
+              header: (
+                <button
+                  className="column-sort"
+                  type="button"
+                  onClick={() => toggleColumnSort("name")}
+                >
+                  {copy.labels.projectHeader}
+                  {sortMarker("name")}
+                </button>
+              ),
+              renderProject: (project, state) => (
+                <span>
+                  {project.name}
+                  <small>{copy.labels.taskCount(state.taskCount)}</small>
+                </span>
+              ),
+            },
             {
               id: "details",
+              kind: "data",
               header: copy.strings.details,
               width: sidebarColumnWidths.details,
               minWidth: 100,
@@ -812,7 +907,17 @@ export default function App() {
             },
             {
               id: "start",
-              header: copy.strings.start,
+              kind: "data",
+              header: (
+                <button
+                  className="column-sort"
+                  type="button"
+                  onClick={() => toggleColumnSort("start")}
+                >
+                  {copy.strings.start}
+                  {sortMarker("start")}
+                </button>
+              ),
               width: sidebarColumnWidths.start,
               minWidth: 80,
               resizable: true,
@@ -855,6 +960,7 @@ export default function App() {
             activeProjectId,
             overProjectId,
           }) => {
+            setSortKey(null);
             setProjects(nextProjects);
             pushLog(`reorder ${activeProjectId} over ${overProjectId}`);
           }}
@@ -904,12 +1010,6 @@ export default function App() {
           onTaskContextMenu={({ task, segment }) =>
             pushLog(`context ${task.id}${segment ? `:${segment.id}` : ""}`)
           }
-          renderProjectCell={(project, state) => (
-            <span>
-              {project.name}
-              <small>{copy.labels.taskCount(state.taskCount)}</small>
-            </span>
-          )}
           renderTask={(task) => (
             <span>
               {task.name}

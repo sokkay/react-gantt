@@ -329,6 +329,27 @@
   padding: 14px;
 }
 
+.column-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.column-sort:hover,
+.column-sort:focus-visible {
+  color: #111827;
+}
+
 @media (max-width: 920px) {
   .docs-shell {
     padding: 16px;

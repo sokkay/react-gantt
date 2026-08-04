@@ -1,6 +1,7 @@
 import {
   GanttChart,
   type GanttProject,
+  type GanttRowSelection,
   type GanttTask,
   type GanttViewMode,
   type NormalizedGanttTask,
@@ -316,6 +317,7 @@ export default function App() {
     "viewMode"
   );
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>("api");
+  const [selectedRows, setSelectedRows] = useState<GanttRowSelection[]>([]);
   const [collapsedProjectIds, setCollapsedProjectIds] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(520);
   const [sidebarColumnWidths, setSidebarColumnWidths] = useState({
@@ -709,6 +711,7 @@ export default function App() {
           snapTo={snapTo === "viewMode" ? undefined : snapTo}
           showSegmentConnectors={showSegmentConnectors}
           selectedTaskId={selectedTaskId}
+          selectedRows={selectedRows}
           selectionToolbarMode="static"
           collapsedProjectIds={collapsedProjectIds}
           virtualized
@@ -779,6 +782,22 @@ export default function App() {
             pushLog(
               `collapse ${projectId} -> ${collapsed ? "collapsed" : "expanded"}`
             );
+          }}
+          onRowSelectionChange={({ selectedRows: nextRows }) => {
+            setSelectedRows(nextRows);
+            pushLog(
+              `select rows ${
+                nextRows
+                  .map((row) =>
+                    row.type === "project" ? row.projectId : row.taskId
+                  )
+                  .join(",") || "none"
+              }`
+            );
+          }}
+          onRowContextMenu={({ row, selectedRows: rows }) => {
+            const rowId = row.type === "project" ? row.project.id : row.task.id;
+            pushLog(`context row ${rowId} [${rows.length}]`);
           }}
           onTaskSelect={(task) => {
             setSelectedTaskId(task?.id ?? null);

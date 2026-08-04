@@ -20,6 +20,48 @@ const projects: GanttProject[] = [
   },
 ];
 
+const selectionProjects: GanttProject[] = [
+  {
+    id: "p1",
+    name: "One",
+    tasks: [
+      {
+        id: "t1",
+        projectId: "p1",
+        name: "Task one",
+        start: "2026-07-01",
+        end: "2026-07-02",
+      },
+    ],
+  },
+  {
+    id: "p2",
+    name: "Two",
+    tasks: [
+      {
+        id: "t2",
+        projectId: "p2",
+        name: "Task two",
+        start: "2026-07-02",
+        end: "2026-07-03",
+      },
+    ],
+  },
+  {
+    id: "p3",
+    name: "Three",
+    tasks: [
+      {
+        id: "t3",
+        projectId: "p3",
+        name: "Task three",
+        start: "2026-07-03",
+        end: "2026-07-04",
+      },
+    ],
+  },
+];
+
 describe("GanttChart", () => {
   it("renders projects and tasks", () => {
     render(<GanttChart projects={projects} viewMode="day" />);
@@ -45,6 +87,155 @@ describe("GanttChart", () => {
 
     fireEvent.click(container.querySelector(".sokkay-gantt") as Element);
     expect(onTaskSelect).toHaveBeenLastCalledWith(null);
+  });
+
+  it("selects project and task rows with Excel-style modifiers", () => {
+    const onRowSelectionChange = vi.fn();
+    const view = render(
+      <GanttChart
+        projects={selectionProjects}
+        viewMode="day"
+        layoutMode="tree"
+        selectedRows={[]}
+        onRowSelectionChange={onRowSelectionChange}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId("project-p1"));
+    expect(onRowSelectionChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        selectedRows: [{ type: "project", projectId: "p1" }],
+      })
+    );
+
+    view.rerender(
+      <GanttChart
+        projects={selectionProjects}
+        viewMode="day"
+        layoutMode="tree"
+        selectedRows={[{ type: "project", projectId: "p1" }]}
+        onRowSelectionChange={onRowSelectionChange}
+      />
+    );
+    fireEvent.click(screen.getByTestId("sidebar-task-t2"), { shiftKey: true });
+    const selectedRange = [
+      { type: "project" as const, projectId: "p1" },
+      { type: "task" as const, projectId: "p1", taskId: "t1" },
+      { type: "project" as const, projectId: "p2" },
+      { type: "task" as const, projectId: "p2", taskId: "t2" },
+    ];
+    expect(onRowSelectionChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ selectedRows: selectedRange })
+    );
+
+    view.rerender(
+      <GanttChart
+        projects={selectionProjects}
+        viewMode="day"
+        layoutMode="tree"
+        selectedRows={selectedRange}
+        onRowSelectionChange={onRowSelectionChange}
+      />
+    );
+    expect(screen.getByTestId("project-p1")).toHaveClass("is-selected");
+    expect(screen.getByTestId("sidebar-task-t1")).toHaveClass("is-selected");
+    fireEvent.click(screen.getByTestId("sidebar-task-t1"), { ctrlKey: true });
+    expect(onRowSelectionChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        selectedRows: [
+          { type: "project", projectId: "p1" },
+          { type: "project", projectId: "p2" },
+          { type: "task", projectId: "p2", taskId: "t2" },
+        ],
+      })
+    );
+
+    view.rerender(
+      <GanttChart
+        projects={selectionProjects}
+        viewMode="day"
+        layoutMode="tree"
+        selectedRows={[
+          { type: "project", projectId: "p1" },
+          { type: "project", projectId: "p2" },
+          { type: "task", projectId: "p2", taskId: "t2" },
+        ]}
+        onRowSelectionChange={onRowSelectionChange}
+      />
+    );
+    fireEvent.click(screen.getByTestId("project-p3"), { metaKey: true });
+    expect(onRowSelectionChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        selectedRows: [
+          { type: "project", projectId: "p1" },
+          { type: "project", projectId: "p2" },
+          { type: "task", projectId: "p2", taskId: "t2" },
+          { type: "project", projectId: "p3" },
+        ],
+      })
+    );
+  });
+
+  it("exposes selected project and task rows on right-click", () => {
+    const onRowSelectionChange = vi.fn();
+    const onRowContextMenu = vi.fn();
+    const selectedRows = [
+      { type: "project" as const, projectId: "p1" },
+      { type: "task" as const, projectId: "p1", taskId: "t1" },
+    ];
+    const view = render(
+      <GanttChart
+        projects={selectionProjects}
+        viewMode="day"
+        layoutMode="tree"
+        selectedRows={selectedRows}
+        onRowSelectionChange={onRowSelectionChange}
+        onRowContextMenu={onRowContextMenu}
+      />
+    );
+
+    fireEvent.contextMenu(screen.getByTestId("sidebar-task-t1"));
+    expect(onRowSelectionChange).not.toHaveBeenCalled();
+    expect(onRowContextMenu).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        row: expect.objectContaining({
+          type: "task",
+          task: expect.objectContaining({ id: "t1" }),
+        }),
+        selectedRows,
+        rows: [
+          expect.objectContaining({ type: "project" }),
+          expect.objectContaining({ type: "task" }),
+        ],
+        event: expect.any(Object),
+      })
+    );
+
+    view.rerender(
+      <GanttChart
+        projects={selectionProjects}
+        viewMode="day"
+        layoutMode="tree"
+        selectedRows={selectedRows}
+        onRowSelectionChange={onRowSelectionChange}
+        onRowContextMenu={onRowContextMenu}
+      />
+    );
+    fireEvent.contextMenu(screen.getByTestId("project-p3"));
+    expect(onRowSelectionChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        selectedRows: [{ type: "project", projectId: "p3" }],
+      })
+    );
+    expect(onRowContextMenu).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        row: expect.objectContaining({
+          type: "project",
+          project: expect.objectContaining({ id: "p3" }),
+        }),
+        selectedRows: [{ type: "project", projectId: "p3" }],
+      })
+    );
   });
 
   it("renders a custom tooltip on hover", async () => {
@@ -696,13 +887,14 @@ describe("GanttChart", () => {
     expect(screen.getByText("Optional")).toBeInTheDocument();
     expect(renderProject).toHaveBeenCalledWith(
       expect.objectContaining({ id: "p1" }),
-      { collapsed: false, taskCount: 1 }
+      { collapsed: false, selected: false, taskCount: 1 }
     );
     expect(renderTask).toHaveBeenCalledWith(
       expect.objectContaining({ id: "t1" }),
       {
         project: expect.objectContaining({ id: "p1" }),
         index: 0,
+        selected: false,
       }
     );
 

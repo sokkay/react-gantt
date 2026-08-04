@@ -151,6 +151,8 @@ export interface GanttProjectCellState {
   collapsed: boolean;
   /** Number of tasks that belong to the project. */
   taskCount: number;
+  /** Whether the project row is part of the controlled selection. */
+  selected: boolean;
 }
 
 /** Stable state passed to task sidebar cell renderers. */
@@ -162,6 +164,8 @@ export interface GanttTaskCellState<
   project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
   /** Zero-based task position inside the project. */
   index: number;
+  /** Whether the task row is part of the controlled sidebar selection. */
+  selected: boolean;
 }
 
 /**
@@ -311,6 +315,45 @@ export interface ProjectReorderPayload<
   projects: Array<NormalizedGanttProject<TProjectMeta, TTaskMeta>>;
 }
 
+/** Stable, unambiguous identity for a selectable sidebar row. */
+export type GanttRowSelection =
+  | { type: "project"; projectId: string }
+  | { type: "task"; projectId: string; taskId: string };
+
+/** Normalized data resolved for a selected sidebar row. */
+export type GanttResolvedRow<TProjectMeta = unknown, TTaskMeta = unknown> =
+  | {
+      type: "project";
+      project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
+    }
+  | {
+      type: "task";
+      project: NormalizedGanttProject<TProjectMeta, TTaskMeta>;
+      task: NormalizedGanttTask<TTaskMeta>;
+    };
+
+/** Payload emitted when the controlled sidebar row selection changes. */
+export interface RowSelectionChangePayload<
+  TProjectMeta = unknown,
+  TTaskMeta = unknown,
+> {
+  /** Selected row identities in their current visual order. */
+  selectedRows: GanttRowSelection[];
+  /** Selected normalized rows in their current visual order. */
+  rows: Array<GanttResolvedRow<TProjectMeta, TTaskMeta>>;
+}
+
+/** Payload emitted when a sidebar row is right-clicked. */
+export interface RowContextMenuPayload<
+  TProjectMeta = unknown,
+  TTaskMeta = unknown,
+> extends RowSelectionChangePayload<TProjectMeta, TTaskMeta> {
+  /** Project or task row that received the right-click. */
+  row: GanttResolvedRow<TProjectMeta, TTaskMeta>;
+  /** The native React mouse event. */
+  event: React.MouseEvent;
+}
+
 /**
  * Imperative actions provided to custom context menus or toolbars.
  */
@@ -432,6 +475,8 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   maxDate?: GanttDateInput;
   /** The ID of the currently selected task. Pass null or undefined for no selection. */
   selectedTaskId?: string | null;
+  /** Controlled selection of project and task rows in the left sidebar. */
+  selectedRows?: GanttRowSelection[];
   /** Determines how and when the task selection details toolbar is displayed. */
   selectionToolbarMode?: GanttSelectionToolbarMode;
   /** Controlled list of collapsed project IDs. Must be updated via onProjectCollapseChange. */
@@ -476,7 +521,10 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
   /** Layout mode of the Gantt chart: 'compact' renders tasks packed in lanes, 'tree' renders tasks on their own rows under projects. */
   layoutMode?: "compact" | "tree";
   /** Custom render function for rendering task cells in the sidebar (only in tree mode). */
-  renderSidebarTaskCell?: (task: NormalizedGanttTask<TTaskMeta>) => ReactNode;
+  renderSidebarTaskCell?: (
+    task: NormalizedGanttTask<TTaskMeta>,
+    state: GanttTaskCellState<TProjectMeta, TTaskMeta>
+  ) => ReactNode;
   /** Event callback triggered when a task is moved (dragged horizontally). */
   onTaskMove?: (payload: TaskMovePayload) => void;
   /**
@@ -504,6 +552,14 @@ export interface GanttChartProps<TProjectMeta = unknown, TTaskMeta = unknown> {
     projectId: string,
     collapsed: boolean,
     collapsedProjectIds: string[]
+  ) => void;
+  /** Emits the next sidebar row selection after click, Shift+click, or Ctrl/Cmd+click. */
+  onRowSelectionChange?: (
+    payload: RowSelectionChangePayload<TProjectMeta, TTaskMeta>
+  ) => void;
+  /** Triggered when a project or task row is right-clicked in the left sidebar. */
+  onRowContextMenu?: (
+    payload: RowContextMenuPayload<TProjectMeta, TTaskMeta>
   ) => void;
   /** Event callback triggered when a task is selected or deselected. */
   onTaskSelect?: (task: NormalizedGanttTask<TTaskMeta> | null) => void;

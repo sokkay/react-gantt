@@ -27,6 +27,11 @@ import { DEFAULT_LANE_GAP, DEFAULT_TASK_HEIGHT } from "./constants";
 import { useGanttDragEnd } from "./hooks/useGanttDragEnd";
 import { useGanttModel } from "./hooks/useGanttModel";
 import { useProjectCollapse } from "./hooks/useProjectCollapse";
+import {
+  resolvedRowFromModel,
+  rowSelectionFromModel,
+  useRowSelection,
+} from "./hooks/useRowSelection";
 import { useSidebarColumnResize } from "./hooks/useSidebarColumnResize";
 import { useSidebarResize } from "./hooks/useSidebarResize";
 import { useTaskPointerInteraction } from "./hooks/useTaskPointerInteraction";
@@ -34,6 +39,7 @@ import type {
   ContextMenuActions,
   GanttChartHandle,
   GanttChartProps,
+  GanttRowModel,
   NormalizedGanttTask,
   NormalizedGanttTaskSegment,
 } from "./types";
@@ -48,6 +54,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     projects,
     viewMode,
     selectedTaskId = null,
+    selectedRows = [],
     selectionToolbarMode = "auto",
     collapsedProjectIds,
     defaultCollapsedProjectIds,
@@ -79,6 +86,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     onTaskReorder,
     onProjectReorder,
     onProjectCollapseChange,
+    onRowSelectionChange,
+    onRowContextMenu,
     onTaskSelect,
     onTaskContextMenu,
     renderTask,
@@ -151,6 +160,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
   const showSelectionToolbar =
     selectionToolbarMode === "static" ||
     (selectionToolbarMode === "auto" && selectedTask);
+  const { emitSelection, isRowSelected, resolveSelection, selectRow } =
+    useRowSelection({ flatRows, selectedRows, onRowSelectionChange });
   const hasTrailingColumnResizeGutter =
     sidebarColumns.at(-1)?.resizable === true;
   const sidebarGridTemplateColumns = `minmax(0, 1fr)${sidebarColumns
@@ -273,6 +284,24 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
     };
     setContextMenu({ task, segment, x: event.clientX, y: event.clientY });
     onTaskContextMenu?.({ task, segment, event, actions: nextActions });
+  };
+
+  const handleRowContextMenu = (
+    event: React.MouseEvent,
+    row: GanttRowModel<TProjectMeta, TTaskMeta>
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const payload = isRowSelected(row)
+      ? resolveSelection(selectedRows)
+      : emitSelection([rowSelectionFromModel(row)]);
+
+    onRowContextMenu?.({
+      row: resolvedRowFromModel(row),
+      ...payload,
+      event,
+    });
   };
 
   return (
@@ -409,7 +438,8 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                     <SortableProjectCell
                       className={cx(
                         classNames?.projectCell,
-                        hoveredRowId === row.id && "is-hovered"
+                        hoveredRowId === row.id && "is-hovered",
+                        isRowSelected(row) && "is-selected"
                       )}
                       project={row.project}
                       collapsed={row.collapsed}
@@ -419,6 +449,22 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       onToggle={() => toggleProject(row.project.id)}
                       onMouseEnter={() => setHoveredRowId(row.id)}
                       onMouseLeave={() => setHoveredRowId(null)}
+                      onClick={
+                        onRowSelectionChange
+                          ? (event) => {
+                              event.stopPropagation();
+                              selectRow(row, {
+                                shiftKey: event.shiftKey,
+                                toggleKey: event.ctrlKey || event.metaKey,
+                              });
+                            }
+                          : undefined
+                      }
+                      onContextMenu={
+                        onRowContextMenu
+                          ? (event) => handleRowContextMenu(event, row)
+                          : undefined
+                      }
                       gridTemplateColumns={sidebarGridTemplateColumns}
                       trailingResizeGutter={hasTrailingColumnResizeGutter}
                       columns={sidebarColumns.map((column) => ({
@@ -427,6 +473,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                         content: column.renderProject?.(row.project, {
                           collapsed: row.collapsed,
                           taskCount: row.project.tasks.length,
+                          selected: isRowSelected(row),
                         }),
                       }))}
                     >
@@ -434,6 +481,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                         ? renderProjectCell(row.project, {
                             collapsed: row.collapsed,
                             taskCount: row.project.tasks.length,
+                            selected: isRowSelected(row),
                           })
                         : row.project.name}
                     </SortableProjectCell>
@@ -444,7 +492,7 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       className={cx(
                         classNames?.taskCell,
                         hoveredRowId === row.id && "is-hovered",
-                        selectedTaskId === row.task.id && "is-selected"
+                        isRowSelected(row) && "is-selected"
                       )}
                       task={row.task}
                       project={row.project}
@@ -453,6 +501,22 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                       index={row.index}
                       onMouseEnter={() => setHoveredRowId(row.id)}
                       onMouseLeave={() => setHoveredRowId(null)}
+                      onClick={
+                        onRowSelectionChange
+                          ? (event) => {
+                              event.stopPropagation();
+                              selectRow(row, {
+                                shiftKey: event.shiftKey,
+                                toggleKey: event.ctrlKey || event.metaKey,
+                              });
+                            }
+                          : undefined
+                      }
+                      onContextMenu={
+                        onRowContextMenu
+                          ? (event) => handleRowContextMenu(event, row)
+                          : undefined
+                      }
                       gridTemplateColumns={sidebarGridTemplateColumns}
                       trailingResizeGutter={hasTrailingColumnResizeGutter}
                       columns={sidebarColumns.map((column) => ({
@@ -461,11 +525,16 @@ function GanttChartComponent<TProjectMeta = unknown, TTaskMeta = unknown>(
                         content: column.renderTask?.(row.task, {
                           project: row.project,
                           index: row.index,
+                          selected: isRowSelected(row),
                         }),
                       }))}
                     >
                       {renderSidebarTaskCell
-                        ? renderSidebarTaskCell(row.task)
+                        ? renderSidebarTaskCell(row.task, {
+                            project: row.project,
+                            index: row.index,
+                            selected: isRowSelected(row),
+                          })
                         : row.task.name}
                     </SortableTaskCell>
                   );

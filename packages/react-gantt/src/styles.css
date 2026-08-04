@@ -101,6 +101,7 @@
   min-width: max(var(--sg-sidebar-width), var(--sg-sidebar-min-width));
   border-right: 1px solid var(--sg-border);
   background: var(--sg-surface);
+  user-select: none;
 }
 
 .sokkay-gantt__sidebar-header {

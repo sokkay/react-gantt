@@ -20,6 +20,8 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   onToggle,
   onMouseEnter,
   onMouseLeave,
+  onClick,
+  onContextMenu,
   columns = [],
   gridTemplateColumns,
   trailingResizeGutter = false,
@@ -36,6 +38,8 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
   onToggle: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
+  onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
   columns?: Array<{ id: string; className?: string; content: React.ReactNode }>;
   gridTemplateColumns?: string;
   trailingResizeGutter?: boolean;
@@ -68,6 +72,17 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onClick={(event) => {
+        const target = event.target as HTMLElement;
+        if (
+          target.closest("button, a, input, select, textarea, [role=button]")
+        ) {
+          return;
+        }
+        onClick?.(event);
+      }}
+      onContextMenu={onContextMenu}
+      data-testid={`project-${project.id}`}
     >
       <div className="sokkay-gantt__project-primary-cell">
         <button
@@ -120,6 +135,8 @@ export function SortableTaskCell<TTaskMeta>({
   index,
   onMouseEnter,
   onMouseLeave,
+  onClick,
+  onContextMenu,
   columns = [],
   gridTemplateColumns,
   trailingResizeGutter = false,
@@ -132,6 +149,8 @@ export function SortableTaskCell<TTaskMeta>({
   index: number;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
+  onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
   columns?: Array<{ id: string; className?: string; content: React.ReactNode }>;
   gridTemplateColumns?: string;
   trailingResizeGutter?: boolean;
@@ -164,6 +183,17 @@ export function SortableTaskCell<TTaskMeta>({
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onClick={(event) => {
+        const target = event.target as HTMLElement;
+        if (
+          target.closest("button, a, input, select, textarea, [role=button]")
+        ) {
+          return;
+        }
+        onClick?.(event);
+      }}
+      onContextMenu={onContextMenu}
+      data-testid={`sidebar-task-${task.id}`}
     >
       <div className="sokkay-gantt__task-primary-cell">
         <button

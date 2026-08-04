@@ -146,6 +146,10 @@ Main types:
 ```ts
 type GanttViewMode = "day" | "week" | "month" | "quarter" | "year";
 
+type GanttRowSelection =
+  | { type: "project"; projectId: string }
+  | { type: "task"; projectId: string; taskId: string };
+
 interface GanttProject<TMeta = unknown> {
   id: string;
   name: string;
@@ -183,12 +187,16 @@ Main callbacks:
 - `onTaskReorder({ taskId, projectId, fromIndex, toIndex, tasks })`
 - `onProjectReorder({ activeProjectId, overProjectId, projects })`
 - `onProjectCollapseChange(projectId, collapsed, collapsedProjectIds)`
+- `onRowSelectionChange({ selectedRows, rows })`
+- `onRowContextMenu({ row, selectedRows, rows, event })`
 - `onTaskSelect(task | null)`
 - `onTaskContextMenu({ task, segment?, event, actions })`
 
 Behavior props:
 
 - `collapsedProjectIds` / `defaultCollapsedProjectIds`
+- `selectedRows`: controlled selection for project and task rows in the left sidebar. Plain click selects one row, `Shift` selects a visible range, and `Ctrl`/`Cmd` toggles rows.
+- `selectedTaskId`: independent controlled selection for task bars in the timeline.
 - `selectionToolbarMode`: `auto`, `static` or `hidden`
 - `labels`: translated UI strings and aria labels
 - `sidebarWidth` / `minSidebarWidth`: fixed project sidebar sizing

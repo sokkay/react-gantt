@@ -1,0 +1,144 @@
+# @sokkay/react-gantt — LLM / agent context
+
+> Ship this file with the npm package. In a consumer project, read:
+> `node_modules/@sokkay/react-gantt/llms.txt`
+> and `node_modules/@sokkay/react-gantt/dist/index.d.ts`
+> before inventing props or callbacks.
+
+## What this is
+
+Controlled React 18+ Gantt chart. The library emits callbacks; the host owns
+`projects`, selection, collapse, column widths, and any sort order.
+
+```tsx
+import { GanttChart } from "@sokkay/react-gantt";
+import "@sokkay/react-gantt/styles.css";
+```
+
+Peers: `react` and `react-dom` `>=18 <20`.
+
+## Invariants
+
+- Controlled component: never assume internal persistence of `projects`.
+- Dates accept `Date | string | number`; internals normalize to start-of-day.
+- Timeline modes: `day` | `week` | `month` | `quarter` | `year`.
+- Weeks use `weekStartsOn: 1`.
+- Styles ship as importable CSS (`@sokkay/react-gantt/styles.css`).
+- Public class names use the `sokkay-gantt__*` prefix; treat them as a
+  customization surface.
+
+## Sidebar columns (unified)
+
+Prop: `columns?: GanttSidebarColumn[]`.
+
+When `columns` is omitted, one tree column is created from `labels.projectHeader`.
+
+| kind | Role |
+|------|------|
+| `tree` | Grip, collapse toggle, project/task label |
+| `data` | Optional `renderProject` / `renderTask` values |
+
+Order in the array = visual order. Put the tree column anywhere.
+
+### Sorting (host-controlled)
+
+There is no built-in column sort API. Put a control in `header` and reorder
+`projects` (and nested `tasks`) in host state.
+
+```tsx
+columns={[
+  {
+    id: "project",
+    kind: "tree",
+    header: (
+      <button type="button" onClick={() => toggleSort("name")}>
+        Project {sortDir === "asc" ? "↑" : "↓"}
+      </button>
+    ),
+  },
+  {
+    id: "start",
+    kind: "data",
+    header: (
+      <button type="button" onClick={() => toggleSort("start")}>
+        Start
+      </button>
+    ),
+    width: 100,
+    renderTask: (task) => task.start.toLocaleDateString(),
+  },
+]}
+```
+
+Resize: set `resizable: true` and update `width` from
+`onSidebarColumnWidthChange` / `onSidebarColumnResizeEnd`.
+
+## Core data
+
+```ts
+projects: Array<GanttProject<TProjectMeta, TTaskMeta>>
+// project: { id, name, tasks, progress?, meta? }
+// task: { id, projectId, name, start, end, segments?, progress?, color?, meta? }
+```
+
+Optional `task.segments[]` for non-contiguous ranges; each segment edits
+independently. `showSegmentConnectors` draws dashed links between segments.
+
+## Important props (grouped)
+
+### View
+`viewMode`, `minDate`, `maxDate`, `snapTo`, `customCellWidths`, `locale`,
+`layoutMode` (`compact` | `tree`), `virtualized`, `overscan`
+
+### Selection / collapse
+`selectedTaskId`, `onTaskSelect`
+`selectedRows`, `onRowSelectionChange`, `onRowContextMenu`
+`collapsedProjectIds` / `defaultCollapsedProjectIds`, `onProjectCollapseChange`
+`selectionToolbarMode`: `auto` | `static` | `hidden`
+
+### Sidebar
+`columns`, `sidebarWidth`, `minSidebarWidth`, `onSidebarWidthChange`
+`onSidebarColumnWidthChange`, `onSidebarColumnResizeEnd`
+
+### Interactions (payloads are named objects)
+`onTaskMove` / `onTaskMoveEnd`
+`onTaskResize` / `onTaskResizeEnd`
+`onTaskTransfer`, `onTaskReorder`, `onProjectReorder`
+`onTaskContextMenu`
+
+### Render slots
+`renderTask`, `renderTaskTooltip(task, { segment? })`
+`renderContextMenu`, `renderSelectionToolbar`, `renderEmptySelectionToolbar`
+`renderHeaderCell`, `renderTimelineCell`, `renderCollapsedProjectSummary`
+
+Tree/data cell content belongs on `columns[].renderProject` / `renderTask`,
+not on removed props (`renderProjectCell`, `renderSidebarHeader`,
+`renderSidebarTaskCell`, `sidebarColumns`).
+
+### Theming
+`theme`, `classNames`, `labels`, `className`
+
+## Imperative handle
+
+```ts
+const ref = useGanttChart();
+ref.current?.scrollToDate(date)
+ref.current?.scrollToTask(taskId)
+ref.current?.selectTask(taskId | null)
+ref.current?.collapseProject / expandProject / toggleProject(projectId)
+```
+
+## Anti-patterns
+
+- Do not mutate `projects` inside the library mentally — always update host state
+  from callbacks.
+- Do not expect `apps/docs` or monorepo `AGENTS.md` to exist in npm installs.
+- Do not invent props like `sortable` / `onSort` — sort is host-owned via headers.
+- Do not require Tailwind in the consumer app.
+
+## Source of truth in this package
+
+- Types + JSDoc: `dist/index.d.ts` (from `src/types.ts`)
+- This guide: `llms.txt`
+- Human overview: `README.md`
+- Migrations: `CHANGELOG.md`

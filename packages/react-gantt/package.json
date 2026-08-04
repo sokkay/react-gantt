@@ -18,17 +18,21 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "llms.txt",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./llms.txt": "./llms.txt"
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsup && pnpm build:css",
     "build:css": "tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify",

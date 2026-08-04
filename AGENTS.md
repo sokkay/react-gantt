@@ -68,6 +68,8 @@ apps/docs/
 - Timeline y pixeles: `packages/react-gantt/src/utils/timeline.ts`.
 - Layout de filas y lanes: `packages/react-gantt/src/utils/layout.ts`.
 - Barras resumen de proyectos colapsados: `packages/react-gantt/src/utils/collapsed-summary.ts`.
+- Helpers de columnas del sidebar: `packages/react-gantt/src/utils/columns.ts`.
+- Contexto para agentes en npm: `packages/react-gantt/llms.txt` (se publica con el paquete).
 - Estilos distribuidos: `packages/react-gantt/src/styles.css`.
 - Demo de consumo: `apps/docs/src/App.tsx`.
 
@@ -75,14 +77,20 @@ apps/docs/
 
 - Mantener payloads de callbacks con objetos nombrados, no listas posicionales.
 - Preferir tipos genericos para `meta` de proyectos y tareas antes que `any`.
+- El sidebar usa `columns` unificado (`kind: "tree" | "data"`). No reintroducir
+  `sidebarColumns` ni una columna primaria implicita separada.
+- Sort por headers es responsabilidad del consumidor (control en `header` +
+  reordenar `projects`); no agregar sort interno obligatorio.
 - Si se agrega una prop nueva, definirla en `GanttChartProps`, documentarla en
-  README si es publica y cubrir el comportamiento con tests cuando tenga logica.
+  `llms.txt` / README si es publica y cubrir el comportamiento con tests cuando tenga logica.
 - Si se agrega un render prop, pasar datos normalizados y un estado minimo y
   estable.
 - No exponer helpers internos desde `index.ts` salvo que sean utiles como API
   publica para consumidores.
 - Evitar cambios incompatibles en nombres de clases `sokkay-gantt__*` porque son
   superficie de personalizacion.
+- Al publicar, `files` del paquete debe incluir `dist`, `llms.txt`, `README.md` y
+  `CHANGELOG.md` para que los consumidores (y LLMs) tengan contexto sin el monorepo.
 
 ## Fechas y Timeline
 

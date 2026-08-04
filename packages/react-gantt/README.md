@@ -1,33 +1,6 @@
 # @sokkay/react-gantt
 
-Controlled React Gantt chart library for React 18+, built with TypeScript and distributed with ready-to-import CSS.
-
-This repository is a pnpm monorepo with:
-
-- `packages/react-gantt`: publishable package `@sokkay/react-gantt`
-- `apps/docs`: Vite demo app for validating props, callbacks and interactions
-
-## Status
-
-Initial interactive base:
-
-- Projects and tasks rendering
-- View modes: `day`, `week`, `month`, `quarter`, `year`
-- Controlled task selection
-- Horizontal task drag with `onTaskMove`
-- Start/end resize with `onTaskResize`
-- Optional task `segments` for non-contiguous ranges (weekends skipped, periodic blocks)
-- Optional dashed connectors between segments via `showSegmentConnectors`
-- Automatic task lanes when ranges overlap inside a project
-- Task reorder within a project with `onTaskReorder`
-- Custom task rendering, tooltip, context menu, selection toolbar and project cell
-- Collapsible projects, controlled or uncontrolled
-- Collapsed project summary bars from first task start to last task end
-- Imperative handle via `useGanttChart`
-- Basic row virtualization and edge auto-scroll during drag
-- Theme and class name overrides
-- Basic project reorder and task transfer callbacks with `@dnd-kit`
-- Unit and component tests with Vitest and Testing Library
+Controlled React Gantt chart for React 18+, TypeScript-first, with importable CSS.
 
 ## Install
 
@@ -40,12 +13,9 @@ import { GanttChart } from "@sokkay/react-gantt";
 import "@sokkay/react-gantt/styles.css";
 ```
 
-Peer dependencies:
+Peer dependencies: `react` and `react-dom` `>=18 <20`.
 
-- `react >=18 <20`
-- `react-dom >=18 <20`
-
-## Basic Usage
+## Quick start
 
 ```tsx
 import { useState } from "react";
@@ -79,280 +49,101 @@ export function Example() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   return (
-    <GanttChart
-      projects={projects}
-      viewMode={viewMode}
-      selectedTaskId={selectedTaskId}
-      onTaskSelect={(task) => setSelectedTaskId(task?.id ?? null)}
-      onTaskMove={({ taskId, start, end }) => {
-        setProjects((items) =>
-          items.map((project) => ({
-            ...project,
-            tasks: project.tasks.map((task) =>
-              task.id === taskId ? { ...task, start, end } : task
-            ),
-          }))
-        );
-      }}
-      onTaskResize={({ taskId, start, end }) => {
-        setProjects((items) =>
-          items.map((project) => ({
-            ...project,
-            tasks: project.tasks.map((task) =>
-              task.id === taskId ? { ...task, start, end } : task
-            ),
-          }))
-        );
-      }}
-    />
-  );
-}
-```
-
-## Operations Ref
-
-Use `useGanttChart` when a parent needs to drive chart operations.
-
-```tsx
-import { GanttChart, useGanttChart } from "@sokkay/react-gantt";
-
-export function Planner({ projects }) {
-  const ganttRef = useGanttChart();
-
-  return (
     <>
-      <button
-        type="button"
-        onClick={() => ganttRef.current?.scrollToTask("api")}
+      <select
+        value={viewMode}
+        onChange={(event) =>
+          setViewMode(event.target.value as GanttViewMode)
+        }
       >
-        Focus API
-      </button>
-      <button
-        type="button"
-        onClick={() => ganttRef.current?.toggleProject("platform")}
-      >
-        Toggle Platform
-      </button>
-      <GanttChart ref={ganttRef} projects={projects} viewMode="day" />
+        <option value="day">Day</option>
+        <option value="week">Week</option>
+        <option value="month">Month</option>
+      </select>
+      <GanttChart
+        projects={projects}
+        viewMode={viewMode}
+        selectedTaskId={selectedTaskId}
+        onTaskSelect={(task) => setSelectedTaskId(task?.id ?? null)}
+        onTaskMove={({ taskId, start, end }) => {
+          setProjects((current) =>
+            current.map((project) => ({
+              ...project,
+              tasks: project.tasks.map((task) =>
+                task.id === taskId ? { ...task, start, end } : task
+              ),
+            }))
+          );
+        }}
+      />
     </>
   );
 }
 ```
 
-## Public API
+## Sidebar columns
 
-Main types:
-
-```ts
-type GanttViewMode = "day" | "week" | "month" | "quarter" | "year";
-
-type GanttRowSelection =
-  | { type: "project"; projectId: string }
-  | { type: "task"; projectId: string; taskId: string };
-
-interface GanttProject<TMeta = unknown> {
-  id: string;
-  name: string;
-  tasks: GanttTask[];
-  meta?: TMeta;
-}
-
-interface GanttTaskSegment {
-  id: string;
-  start: Date | string | number;
-  end: Date | string | number;
-}
-
-interface GanttTask<TMeta = unknown> {
-  id: string;
-  projectId: string;
-  name: string;
-  start: Date | string | number;
-  end: Date | string | number;
-  /** Optional non-contiguous ranges; when present, each segment is rendered and edited independently. */
-  segments?: GanttTaskSegment[];
-  progress?: number;
-  color?: string;
-  meta?: TMeta;
-}
-```
-
-Main callbacks:
-
-- `onTaskMove({ taskId, projectId, start, end, segmentId? })`
-- `onTaskMoveEnd({ taskId, projectId, start, end, segmentId? })`
-- `onTaskResize({ taskId, projectId, edge, start, end, segmentId? })`
-- `onTaskResizeEnd({ taskId, projectId, edge, start, end, segmentId? })`
-- `onTaskTransfer({ taskId, fromProjectId, toProjectId, index })`
-- `onTaskReorder({ taskId, projectId, fromIndex, toIndex, tasks })`
-- `onProjectReorder({ activeProjectId, overProjectId, projects })`
-- `onProjectCollapseChange(projectId, collapsed, collapsedProjectIds)`
-- `onRowSelectionChange({ selectedRows, rows })`
-- `onRowContextMenu({ row, selectedRows, rows, event })`
-- `onTaskSelect(task | null)`
-- `onTaskContextMenu({ task, segment?, event, actions })`
-
-Behavior props:
-
-- `collapsedProjectIds` / `defaultCollapsedProjectIds`
-- `selectedRows`: controlled selection for project and task rows in the left sidebar. Plain click selects one row, `Shift` selects a visible range, and `Ctrl`/`Cmd` toggles rows.
-- `selectedTaskId`: independent controlled selection for task bars in the timeline.
-- `selectionToolbarMode`: `auto`, `static` or `hidden`
-- `labels`: translated UI strings and aria labels
-- `locale`: `date-fns` locale object for timeline header date formatting
-- `sidebarWidth` / `minSidebarWidth`: fixed project sidebar sizing
-- `onSidebarWidthChange`: receives sidebar resize changes from the drag handle
-- `sidebarColumns`: additional typed columns for project and task rows
-- `onSidebarColumnWidthChange` / `onSidebarColumnResizeEnd`: controlled column resize callbacks
-- `snapTo`: `day`, `week`, `month`, `quarter`, `year` or `none`
-- `showSegmentConnectors`: draw dashed lines between consecutive task segments
-- `virtualized`
-- `overscan`
-
-Labels:
+Pass an ordered `columns` array. Use `kind: "tree"` for the project/task chrome
+(grip, collapse, name) and `kind: "data"` for extra values. Omit `columns` to
+get a single tree column from `labels.projectHeader`.
 
 ```tsx
-<GanttChart
-  projects={projects}
-  viewMode="day"
-  labels={{
-    projectHeader: "Proyecto",
-    noTaskSelected: "Ninguna tarea seleccionada",
-    clearSelection: "Limpiar",
-    selectAction: "Seleccionar",
-    closeAction: "Cerrar",
-    taskCount: (count) => `${count} ${count === 1 ? "tarea" : "tareas"}`,
-    reorderProject: (project) => `Reordenar ${project.name}`,
-    collapseProject: (project) => `Colapsar ${project.name}`,
-    expandProject: (project) => `Expandir ${project.name}`,
-    transferTask: (task) => `Mover ${task.name} a otro proyecto`,
-  }}
-/>
-```
-
-Locale:
-
-```tsx
-import { es } from "date-fns/locale";
-
-<GanttChart projects={projects} viewMode="month" locale={es} />;
-```
-
-Customization:
-
-Additional sidebar columns render controlled project and task data after the
-primary cell. Task values appear in `tree` layout. Numeric widths are pixels;
-string widths accept CSS grid tracks. Either renderer can be omitted when a
-column only applies to one row type. Set `resizable: true` and update the
-column's `width` from `onSidebarColumnWidthChange` to enable controlled resize;
-keyboard users can resize in 10px steps with the arrow keys.
-
-```tsx
-const [columnWidths, setColumnWidths] = useState({ details: 140, start: 100 });
-
 <GanttChart
   projects={projects}
   viewMode="month"
   layoutMode="tree"
   sidebarWidth={520}
-  sidebarColumns={[
-    {
-      id: "details",
-      header: "Owner / status",
-      width: columnWidths.details,
-      minWidth: 100,
-      resizable: true,
-      renderProject: (project) => project.meta?.owner ?? "—",
-      renderTask: (task) => task.meta?.status ?? "—",
-    },
+  columns={[
+    { id: "project", kind: "tree", header: "Project" },
     {
       id: "start",
+      kind: "data",
       header: "Start",
-      width: columnWidths.start,
-      minWidth: 80,
+      width: 100,
       resizable: true,
-      renderProject: (project) =>
-        project.tasks[0]?.start.toLocaleDateString() ?? "—",
       renderTask: (task) => task.start.toLocaleDateString(),
     },
   ]}
-  onSidebarColumnWidthChange={({ columnId, width }) =>
-    setColumnWidths((current) => ({ ...current, [columnId]: width }))
-  }
-/>;
-```
-
-- `renderTask`
-- `renderTaskTooltip(task, { segment? })`
-- `renderContextMenu({ task, segment?, actions })`
-- `renderSelectionToolbar`
-- `renderEmptySelectionToolbar`
-- `renderProjectCell`
-- `renderCollapsedProjectSummary`
-- `renderSidebarHeader`
-- `renderHeaderCell`
-- `renderTimelineCell`
-- `classNames`
-- `theme`
-
-Theme example:
-
-```tsx
-<GanttChart
-  projects={projects}
-  viewMode="day"
-  theme={{
-    fontFamily: "inherit",
-    background: "#f8fafc",
-    task: "#2563eb",
+  onSidebarColumnWidthChange={({ columnId, width }) => {
+    /* update controlled widths in host state */
   }}
 />
 ```
 
-Pass `fontFamily: "inherit"` to adopt the typography from the host page. Any valid CSS `font-family` value is supported.
+**Sorting:** put a button in `column.header` and reorder `projects` in your
+state. The library does not sort rows internally.
 
-## Development
+## Documentation for agents / IDEs
 
-Install dependencies:
+When this package is installed from npm, prefer:
+
+1. [`llms.txt`](./llms.txt) — compact API map and invariants
+2. `dist/index.d.ts` — full typed public surface with JSDoc
+3. [`CHANGELOG.md`](./CHANGELOG.md) — breaking changes and migrations
+
+## Features
+
+- View modes: `day`, `week`, `month`, `quarter`, `year`
+- Controlled selection, collapse, move, resize, reorder, transfer
+- Optional task `segments` and segment connectors
+- Unified sidebar `columns` (`tree` | `data`) with resize
+- Render slots for bars, tooltips, context menu, toolbar, timeline cells
+- Theme / className overrides and `labels` / `locale`
+- Imperative handle via `useGanttChart`
+- Row virtualization
+
+## Development (monorepo)
 
 ```bash
 pnpm install
-```
-
-Run the demo:
-
-```bash
 pnpm dev
-```
-
-Build everything:
-
-```bash
-pnpm build
-```
-
-Run tests:
-
-```bash
-pnpm test
-```
-
-Type-check:
-
-```bash
-pnpm typecheck
-```
-
-Format:
-
-```bash
-pnpm format
-pnpm format:check
+pnpm --filter @sokkay/react-gantt test
+pnpm --filter @sokkay/react-gantt build
 ```
 
 ## Release
 
-Publishing is fully manual. From a clean `main`:
+Publishing is manual. From a clean `main`:
 
 ```bash
 pnpm release patch   # or minor | major | x.y.z
@@ -361,18 +152,6 @@ pnpm --filter @sokkay/react-gantt publish --access public
 git push
 git push origin vX.Y.Z
 ```
-
-The script bumps `packages/react-gantt`, updates its `CHANGELOG.md`, commits, and creates the `vX.Y.Z` tag. You build and publish to npm yourself.
-
-## Package Build
-
-The package is built with `tsup` and Tailwind:
-
-- JS/CJS output in `packages/react-gantt/dist`
-- Type declarations in `packages/react-gantt/dist`
-- CSS bundle in `packages/react-gantt/dist/styles.css`
-
-Consumers do not need to configure Tailwind to use the default styles.
 
 ## License
 

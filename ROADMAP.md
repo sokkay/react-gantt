@@ -14,7 +14,7 @@ Este documento actua como un backlog/listado de caracteristicas pendientes del c
 - **Visualizacion y Tiempos:** Renderizado de proyectos y tareas con soporte de multiples vistas (dia, semana, mes, trimestre y ano).
 - **Interacciones Directas:** Drag and drop y resize de tareas mediante eventos pointer con snapping configurable.
 - **Orden y Estructura:** Reordenamiento vertical de proyectos, ordenamiento de tareas en el mismo carril y transferencia de tareas entre diferentes proyectos.
-- **Personalizacion Extrema:** Slots y render props para elementos principales (`renderTask`, `renderTaskTooltip`, `renderContextMenu`, `renderSelectionToolbar`, `renderProjectCell`).
+- **Personalizacion Extrema:** Slots y render props para elementos principales (`renderTask`, `renderTaskTooltip`, `renderContextMenu`, `renderSelectionToolbar`) y columnas unificadas (`columns` con `kind: "tree" | "data"`).
 - **Rendimiento:** Virtualizacion vertical y horizontal para grandes volumenes de datos y auto-scroll inteligente durante interacciones de arrastre.
 
 ---

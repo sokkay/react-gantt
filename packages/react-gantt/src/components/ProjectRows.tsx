@@ -94,18 +94,20 @@ export function SortableProjectCell<TProjectMeta, TTaskMeta>({
         >
           <GripVertical size={16} />
         </button>
-        <button
-          className="sokkay-gantt__project-toggle"
-          type="button"
-          aria-label={
-            collapsed
-              ? labels.expandProject(project)
-              : labels.collapseProject(project)
-          }
-          onClick={onToggle}
-        >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-        </button>
+        {project.tasks.length > 0 ? (
+          <button
+            className="sokkay-gantt__project-toggle"
+            type="button"
+            aria-label={
+              collapsed
+                ? labels.expandProject(project)
+                : labels.collapseProject(project)
+            }
+            onClick={onToggle}
+          >
+            {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+          </button>
+        ) : null}
         <div className="sokkay-gantt__project-label">{children}</div>
       </div>
       {columns.map((column) => (

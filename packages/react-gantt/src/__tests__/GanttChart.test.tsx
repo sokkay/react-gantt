@@ -1173,4 +1173,24 @@ describe("GanttChart", () => {
     expect(projectRows).toHaveLength(1);
     expect(taskRows).toHaveLength(0);
   });
+
+  it("hides the collapse toggle when a project has no tasks", () => {
+    render(
+      <GanttChart
+        projects={[
+          { id: "empty", name: "Empty project", tasks: [] },
+          ...projects,
+        ]}
+        viewMode="day"
+        layoutMode="tree"
+      />
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Collapse Empty project" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Collapse Platform" })
+    ).toBeInTheDocument();
+  });
 });

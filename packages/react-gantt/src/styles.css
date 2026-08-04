@@ -284,6 +284,7 @@
 .sokkay-gantt__project-cell {
   display: grid;
   border-bottom: 1px solid var(--sg-border);
+  font-size: 12px;
 }
 
 .sokkay-gantt__project-primary-cell,
@@ -339,6 +340,8 @@
   min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 12px;
+  font-weight: 650;
 }
 
 .sokkay-gantt__row {
